@@ -4,7 +4,7 @@ import { useState } from "react";
 
 interface Props {
     text: string,
-    primary?: boolean,
+    style?: "primary" | "secondary" | "default",
     onClick: () => void,
 }
 
@@ -20,7 +20,8 @@ export default function Button({...props}: Props) {
     }
 
     return (
-        <button className={props.primary ? primaryStyle : defaultStyle} name={props.text} title={props.text} onClick={handleOnClick}>
+        <button className={props.style === "primary" ? primaryStyle : (props.style === "secondary" ? secondaryStyle : defaultStyle)} 
+                name={props.text} title={props.text} onClick={handleOnClick}>
             {props.text}
         </button>
     );
