@@ -1,29 +1,32 @@
 'use client';
 import { useState } from "react";
-import Button from "../Button/Button";
 import Container from "../Container/Container";
 import Logo from "../Logo/Logo";
 import TextField from "../TextField/TextField";
+import Button from "../Button/Button";
 import { useRouter } from "next/navigation";
 
-export default function LoginForm() {
+export default function SignUpForm() {
     const router = useRouter();
-    const [verify, setVerify] = useState<boolean>();
-    const [code, setCode] = useState<boolean>();
+    const [verify, setVerify] = useState<boolean>(false);
+    const [code, setCode] = useState<string>();
+    const [name, setName] = useState<string>();
+    const [surname, setSurname] = useState <string>();
+    const [organization, setOrganization] = useState<string>();
     const [email, setEmail] = useState<string>();
 
     function handleLogin() {
-        alert("Login: " + email);
-        setVerify(true);
+        router.push("/login");
     }
 
     function handleRegister() {
-        router.push("/signup");
+        alert("Sign up: " + email);
+        setVerify(true);
     }
 
     function handleVerify() {
         alert("Verifyed code: " + code);
-        router.push("/");
+        handleLogin();
     }
 
     return (
@@ -32,10 +35,13 @@ export default function LoginForm() {
             <hr className="bg-gray-500 h-0.5 w-full mb-4 shadow-xl"/>
             {!verify && 
                 <>
-                    <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Please login with your email to access the services</p>
+                    <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Insert data of your organization to complete the sign up</p>
+                    <TextField label="Name" onChange={setName}></TextField>
+                    <TextField label="Surname" onChange={setSurname}></TextField>
+                    <TextField label="Organization" onChange={setOrganization}></TextField>
                     <TextField label="Email" onChange={setEmail}></TextField>
-                    <Button text="login" primary={true} onClick={handleLogin}/>
-                    <Button text="sign up" onClick={handleRegister}/>
+                    <Button text="sign up" onClick={handleRegister} primary={true}/>
+                    <Button text="login" onClick={handleLogin} primary={false}/>
                 </>
             }
             {verify && 
@@ -46,5 +52,5 @@ export default function LoginForm() {
                 </>
             }
         </Container>
-    );
+    )
 }
