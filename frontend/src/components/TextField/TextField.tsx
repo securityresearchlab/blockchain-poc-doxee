@@ -21,10 +21,10 @@ const TextField = forwardRef((props: Props, forwardedRef: Ref<TextFiledFunctions
     }   
     
     return (
-        <div className="w-3/4">
+        <div className="w-full">
             <p className="capitalize text-gray-500 text-sm ml-1 mb-1">{value ? props.label : undefined}</p>
             <input type="text" value={value} defaultValue={props.defaultValue} onChange={handleOnChange} placeholder={props.label}
-                className="border-solid border-2 border-gray-200 rounded-md w-full h-10 mb-6 text-gray-700 p-2 shadow-md"></input>
+                className="border-solid border-2 border-gray-200 rounded-md w-full h-10 text-gray-700 p-2 shadow-md"></input>
         </div>
     );
 });

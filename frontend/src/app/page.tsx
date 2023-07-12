@@ -3,7 +3,7 @@
 import Button from "@/components/Button/Button";
 import Container from "@/components/Container/Container";
 import Logo from "@/components/Logo/Logo";
-import Table from "@/components/Table/Table";
+import FileCardContainer from "@/components/FileCard/FileCardContainer";
 import { getFiles } from "@/model/chainFile";
 import { User } from "@/model/user";
 import { useRouter } from "next/navigation";
@@ -36,12 +36,12 @@ export default function Home() {
         <hr className="w-full h-1 border-gray-500 shadow-xl mb-4 mt-4"></hr>
         <div className="flex flex-row justify-around items-center w-full">
           <h2 className="text-2xl text-gray-700 font-bold w-full underline">Recently files</h2>
-          <div className="flex w-2/4">
+          <div className="flex w-2/4 gap-2">
             <Button text="Upload new file" onClick={handleUpload} style="primary"></Button>
             <Button text="Logout" onClick={handleLogout} style="secondary"></Button>
           </div>
         </div>
-        <Table files={getFiles()}></Table>
+        <FileCardContainer files={getFiles()}></FileCardContainer>
       </Container>
     </>
   );
