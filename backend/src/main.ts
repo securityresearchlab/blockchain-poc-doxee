@@ -5,9 +5,10 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { MetadataStorage, getFromContainer } from 'class-validator';
 import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { writeFileSync } from 'fs';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule, {cors: true});
+  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({logger: true}), {cors: true});
 
   const configService = app.get(ConfigService);
   // Import server configuration
