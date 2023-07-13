@@ -7,11 +7,7 @@ interface Props {
     onChange: (value: any) => void;
 }
 
-type TextFiledFunctions = {
-    reset: () => void;
-}
-
-const TextField = forwardRef((props: Props, forwardedRef: Ref<TextFiledFunctions>) => {
+export default function TextField({...props}: Props) {
     const [value, setValue] = useState<string | undefined>(props.defaultValue);
 
     function handleOnChange(event: any) {
@@ -27,6 +23,4 @@ const TextField = forwardRef((props: Props, forwardedRef: Ref<TextFiledFunctions
                 className="border-solid border-2 border-gray-200 rounded-md w-full h-10 text-gray-700 p-2 shadow-md"></input>
         </div>
     );
-});
-
-export default TextField;
+}

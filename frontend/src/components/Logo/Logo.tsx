@@ -1,5 +1,5 @@
 import Image from "next/image";
-import logo from "../../app/doxee-logo.webp"
+import logo from "../../app/assets/img/doxee-logo.webp";
 
 export default function Logo() {
     return (

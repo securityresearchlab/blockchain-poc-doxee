@@ -15,11 +15,11 @@ export default function FileCard({...props}: Props) {
         <div className="bg-white border-solid border-2 border-gray-700 text-gray-700 rounded-lg flex p-3 w-1/5 shadow-xl">
             <div className="flex flex-col w-full">
                 <div className="flex felx-row justify-between w-full flex-wrap">
-                    <strong className="mb-4 text-xl">{props.file.id}</strong>
-                    <p>{props.file.uploadDate?.toLocaleDateString()}</p>
+                    <div><strong className="mb-4 text-xl">{props.file.id}</strong></div>
+                    <div>{props.file.uploadDate?.toLocaleDateString()}</div>
                 </div>
-                <p className="mb-2">{props.file.name + " (" + props.file.size + ")"}</p>
-                <p className="mb-2 font-semibold">{props.file.owner}</p>
+                <div className="mb-2">{props.file.name + " (" + props.file.size + ")"}</div>
+                <div className="mb-2 font-semibold">{props.file.owner}</div>
                 <Button style="secondary" text="Download" onClick={handleDownloadFile}></Button>
             </div>
         </div>
