@@ -6,7 +6,7 @@ export class HealthCkeckController {
   constructor(private readonly healthCkeckService: HealthCkeckService) {}
 
   @Get()
-  findAll() {
+  check() {
     return this.healthCkeckService.check();
   }
 }

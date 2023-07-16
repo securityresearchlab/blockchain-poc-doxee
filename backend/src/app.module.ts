@@ -1,10 +1,14 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from "@nestjs/config";
+import { ConfigModule, ConfigService } from "@nestjs/config";
 import { configuration } from './config/configuration';
 import { validationSchema } from './config/validation';
 import { HealthCkeckModule } from './health-ckeck/health-ckeck.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { User } from './users/entities/user';
+import { AuthCode } from './auth-code/entities/auth-code';
+import { AuthCodeModule } from './auth-code/auth-code.module';
 
 @Module({
   imports: [
@@ -14,9 +18,21 @@ import { UsersModule } from './users/users.module';
       load: [configuration],
       validationSchema: validationSchema,
     }),
+    TypeOrmModule.forRootAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        type: 'sqlite',
+        database: configService.get("DB"),
+        entities: [User, AuthCode],
+        synchronize: true,
+        autoLoadEntities: true,
+      }),
+    }),
     HealthCkeckModule,
     AuthModule,
     UsersModule,
+    AuthCodeModule,
   ],
 })
 export class AppModule {}
