@@ -34,7 +34,7 @@ async function bootstrap() {
   // OpenAPI file generation only
   const generateOpenAPIOnly = process.argv.includes("openapionly=true");
   if (generateOpenAPIOnly) {
-    writeFileSync(configService.get("OPENAPI_FILE_NAME"), JSON.stringify(swaggerDocument), {encoding: "utf8"});
+    writeFileSync('../'+configService.get("OPENAPI_FILE_NAME"), JSON.stringify(swaggerDocument), {encoding: "utf8"});
     await app.close();
   } else {
       // Start server

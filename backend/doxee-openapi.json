@@ -1,1 +1,0 @@
-{"openapi":"3.0.0","paths":{"/":{"get":{"operationId":"AppController_getHello","parameters":[],"responses":{"200":{"description":""}}}}},"info":{"title":"Doxee APIs","description":"Doxee APIs to upload files into Hyperledger Fabric v2 blockchain","version":"0","contact":{}},"tags":[],"servers":[{"url":"http://localhost:8888"}],"components":{"schemas":{}}}

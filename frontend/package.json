@@ -6,16 +6,19 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "openapi-gen": "npx openapi-client-axios-typegen ../doxee-openapi.json > src/api/doxee-api.d.ts"
   },
   "dependencies": {
     "@types/node": "20.4.1",
     "@types/react": "18.2.14",
     "@types/react-dom": "18.2.6",
     "autoprefixer": "10.4.14",
+    "axios": "^1.4.0",
     "eslint": "8.44.0",
     "eslint-config-next": "13.4.9",
     "next": "13.4.9",
+    "openapi-client-axios": "^7.3.1",
     "postcss": "8.4.25",
     "react": "18.2.0",
     "react-dom": "18.2.0",

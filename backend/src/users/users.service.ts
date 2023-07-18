@@ -1,14 +1,14 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { User } from './entities/user';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SignUpUserDto } from './dto/signup-user-dto';
 import generateAuthCode from '../auth-code/utils/auth-code-generator';
 import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
-import { AuthCodeService } from 'src/auth-code/auth-code.service';
 
 @Injectable()
 export class UsersService {
+    private readonly logger = new Logger(UsersService.name);
 
     constructor(
         @InjectRepository(User)
@@ -37,6 +37,8 @@ export class UsersService {
         user.authCodes = new Array();
         user.authCodes.push(authCode);
 
+        this.logger.log('Generated code: ' + authCode + ' for user: ' + user.email);
+        
         await this.usersRepository.manager.transaction(
             async (transactionEntityManger) => {
                 await transactionEntityManger.save(authCode)
