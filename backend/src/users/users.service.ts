@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpCode, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { User } from './entities/user';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -37,9 +37,9 @@ export class UsersService {
         user.authCodes = new Array();
         user.authCodes.push(authCode);
 
-        this.logger.log('Generated code: ' + authCode + ' for user: ' + user.email);
+        this.logger.log('Generated code: ' + authCode.code + ' for user: ' + user.email);
         
-        await this.usersRepository.manager.transaction(
+        return await this.usersRepository.manager.transaction(
             async (transactionEntityManger) => {
                 await transactionEntityManger.save(authCode)
                 await transactionEntityManger.save(user)

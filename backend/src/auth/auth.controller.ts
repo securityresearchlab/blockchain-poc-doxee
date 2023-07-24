@@ -1,13 +1,15 @@
-import { Body, Controller, HttpCode, HttpStatus, Post, UsePipes, ValidationPipe } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Logger, Post, Res, UsePipes, ValidationPipe } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignUpUserDto } from 'src/users/dto/signup-user-dto';
 import { UsersService } from 'src/users/users.service';
 import { LoginUserDto } from 'src/users/dto/login-user-dto';
 import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Response } from 'express';
 
 @ApiTags("auth")
 @Controller('/api/v0/secure/auth')
 export class AuthController {
+    private readonly logger = new Logger(AuthController.name);
 
     constructor(
         private authService: AuthService, 
@@ -25,12 +27,17 @@ export class AuthController {
     }
 
     @Post('signUp')
-    @HttpCode(HttpStatus.OK)
+    @HttpCode(HttpStatus.CREATED)
     @UsePipes(new ValidationPipe({transform: true}))
     @ApiBody({type: SignUpUserDto})
     @ApiResponse({status: HttpStatus.OK, description: 'User created successfully.'})
     @ApiResponse({status: HttpStatus.INTERNAL_SERVER_ERROR, description: 'Error during registration process.'})
-    singUp(@Body() signUpUserDto: SignUpUserDto) {
-        return this.usersService.saveOne(signUpUserDto);
+    async singUp(@Res({passthrough: true}) res: Response, @Body() signUpUserDto: SignUpUserDto) {
+        try {
+            await this.usersService.saveOne(signUpUserDto);
+            res.status(HttpStatus.CREATED).send({});
+        } catch (error) {
+            return error;
+        }
     }
 }

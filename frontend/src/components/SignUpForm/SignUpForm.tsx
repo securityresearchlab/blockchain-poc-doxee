@@ -8,13 +8,12 @@ import Button from "../Button/Button";
 import { useRouter } from "next/navigation";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
 import sleep from "@/utils/functionUtilities";
-import OpenAPIClientAxios from "openapi-client-axios";
-import { Client } from "@/api/doxee-api";
+import { AuthService, SignUpUserDto } from "@/openapi";
+import { error } from "console";
 
 export default function SignUpForm() {
-    const api = new OpenAPIClientAxios({definition: '../../../../doxee-openapi.json'}).init<Client>();
-
     const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+
     const router = useRouter();
 
     const [verify, setVerify] = useState<boolean>(false);
@@ -24,10 +23,11 @@ export default function SignUpForm() {
     const [surname, setSurname] = useState <string>();
     const [organization, setOrganization] = useState<string>();
     const [email, setEmail] = useState<string>();
-    const [emailError, setEmailError] = useState<boolean>(false);
+    const [fromError, setFormError] = useState<boolean>(false);
+    const [formMessage, setFormMessage] = useState<string>('');
 
     function handleEmail(value: any) {
-        setEmailError(false);
+        setFormError(false);
         setEmail(value);
     }
 
@@ -36,10 +36,25 @@ export default function SignUpForm() {
     }
 
     async function handleRegister() {
-        if(email && expression.test(email)) {
-            setVerify(true);
-        } else 
-            setEmailError(true);
+        if(name && surname && organization && email) {
+            const singUpUserDto: SignUpUserDto = {
+                name: name,
+                surname: surname,
+                organization: organization,
+                email: email,
+            };
+            await AuthService.authControllerSingUp(singUpUserDto)
+                .then(response => {
+                    setVerify(true);
+                })
+                .catch(error => {
+                    setFormMessage("Error during signUp: " + error.message);
+                    setFormError(true);
+                })
+        } else {
+            setFormMessage("Requested fields are not completed");
+            setFormError(true);
+        }
     }
 
     async function handleVerify() {
@@ -50,7 +65,7 @@ export default function SignUpForm() {
 
     return (
         <>
-            <PopUpMessage serverity="error" title="Error" message="Inserterd email is not valid" display={emailError}></PopUpMessage>
+            <PopUpMessage serverity="error" title="Error" message={formMessage} display={fromError}></PopUpMessage>
             <PopUpMessage serverity="success" title="Success" message="Inserted code is valid" display={codeValid}></PopUpMessage>
             <Container>
                 <Logo/>
