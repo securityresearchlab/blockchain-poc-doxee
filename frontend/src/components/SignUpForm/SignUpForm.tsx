@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Container from "../Container/Container";
 import Logo from "../Logo/Logo";
 import TextField from "../TextField/TextField";
@@ -8,7 +8,7 @@ import Button from "../Button/Button";
 import { useRouter } from "next/navigation";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
 import sleep from "@/utils/functionUtilities";
-import { AuthService, CancelablePromise, DefaultService, SignUpUserDto } from "@/openapi";
+import { AuthService, SignUpUserDto } from "@/openapi";
 
 export default function SignUpForm() {
     const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
@@ -42,7 +42,7 @@ export default function SignUpForm() {
                 organization: organization,
                 email: email,
             };
-            AuthService.authControllerSingUp(singUpUserDto)
+            AuthService.authControllerSignUp(singUpUserDto)
                 .then((res) => {
                     alert(res);
                     setVerify(true);

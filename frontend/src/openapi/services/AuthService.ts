@@ -35,7 +35,7 @@ export class AuthService {
      * @returns any User created successfully.
      * @throws ApiError
      */
-    public static authControllerSingUp(
+    public static authControllerSignUp(
         requestBody: SignUpUserDto,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
