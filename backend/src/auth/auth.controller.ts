@@ -23,7 +23,11 @@ export class AuthController {
     @ApiResponse({status: HttpStatus.OK, description: 'User authenticated successfully.'})
     @ApiResponse({status: HttpStatus.UNAUTHORIZED, description: 'Credentials are invalid.'})
     signIn(@Body() loginUserDto: LoginUserDto) {
-        return this.authService.signIn(loginUserDto);
+        try {
+            return this.authService.signIn(loginUserDto);
+        } catch (error) {
+            return error;
+        }
     }
 
     @Post('signUp')

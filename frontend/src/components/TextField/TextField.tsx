@@ -8,7 +8,7 @@ interface Props {
 }
 
 export default function TextField({...props}: Props) {
-    const [value, setValue] = useState<string | undefined>(props.defaultValue);
+    const [value, setValue] = useState<string>(props.defaultValue ? props.defaultValue : '');
 
     function handleOnChange(event: any) {
         const val: string = event.target.value;

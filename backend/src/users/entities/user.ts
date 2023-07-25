@@ -1,10 +1,9 @@
-import { Column, Entity, JoinColumn, OneToMany, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Generated, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Timestamp, Unique } from "typeorm";
 import { AuthCode } from "../../auth-code/entities/auth-code";
-import { SignUpUserDto } from "../dto/signup-user-dto";
 
 @Entity()
 export class User {
-    @PrimaryGeneratedColumn()
+    @PrimaryGeneratedColumn('uuid')
     id: string;
 
     @Column()
@@ -19,11 +18,13 @@ export class User {
     @Column()
     email: string;
 
-
     @Column({default: false})
     active: boolean;
 
+    @CreateDateColumn()
+    createDate: Date;
+
     @OneToMany(type => AuthCode, authCode => authCode.user)
-    @JoinColumn()
+    @JoinTable()
     authCodes: Array<AuthCode>;
 }

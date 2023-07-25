@@ -1,10 +1,11 @@
-import { HttpCode, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import { HttpCode, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { User } from './entities/user';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SignUpUserDto } from './dto/signup-user-dto';
 import generateAuthCode from '../auth-code/utils/auth-code-generator';
 import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
+import { AuthCode } from 'src/auth-code/entities/auth-code';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +19,7 @@ export class UsersService {
     async findOne(email: string): Promise<User> {
         return this.usersRepository.findOne({
             relations: {
-                authCodes: false,
+                authCodes: true,
             },
             where: {
                 email: email
@@ -27,22 +28,33 @@ export class UsersService {
     }
 
     async saveOne(signUpUserDto: SignUpUserDto) {
-        let user: User = new User();
+        const existingUser: User = await this.findOne(signUpUserDto.email);
+        let user: User = existingUser ? existingUser : new User();
         let authCode = generateAuthCode(ReasonEnum.SIGN_UP);
+
+        // If user already exists then invalidate all existing codes and saving a new one.
+        if (existingUser) {
+            this.logger.log('Generated code: ' + authCode.code + ' for user: ' + user.id);
+            authCode.user = existingUser;
+            return await this.usersRepository.manager.transaction(
+                async (transactionManager) => {
+                    await transactionManager.update(AuthCode, {user: existingUser}, {used: true});
+                    await transactionManager.save(authCode);
+                }
+            )
+        }
 
         user.name = signUpUserDto.name;
         user.surname = signUpUserDto.surname;
         user.organization = signUpUserDto.organization;
         user.email = signUpUserDto.email;
         user.authCodes = new Array();
-        user.authCodes.push(authCode);
-
-        this.logger.log('Generated code: ' + authCode.code + ' for user: ' + user.email);
         
         return await this.usersRepository.manager.transaction(
             async (transactionEntityManger) => {
-                await transactionEntityManger.save(authCode)
-                await transactionEntityManger.save(user)
+                authCode.user = await transactionEntityManger.save(user);
+                this.logger.log('Generated code: ' + authCode.code + ' for user: ' + user.id);
+                await transactionEntityManger.save(authCode);
             }
         );
     }

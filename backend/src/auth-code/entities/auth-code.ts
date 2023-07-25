@@ -1,4 +1,4 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { ReasonEnum } from "./reason-enum";
 import { User } from "../../users/entities/user";
 
@@ -8,7 +8,7 @@ export class AuthCode {
     id: string;
 
     @ManyToOne(type => User, user => user.email)
-    @JoinColumn()
+    @JoinTable()
     user: User;
 
     @Column({enum: ReasonEnum})
