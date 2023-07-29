@@ -18,6 +18,7 @@ export default function SignUpForm() {
     const [verify, setVerify] = useState<boolean>(false);
     const [code, setCode] = useState<string>('');
     const [codeValid, setCodeValid] = useState<boolean>(false);
+    const [codeError, setCodeError] = useState<boolean>(false);
     const [name, setName] = useState<string>('');
     const [surname, setSurname] = useState <string>('');
     const [organization, setOrganization] = useState<string>();
@@ -35,6 +36,9 @@ export default function SignUpForm() {
     }
 
     function handleRegister() {
+        setFormError(false);
+        setCodeError(false);
+        setCodeValid(false);
         if(name && surname && organization && email) {
             const signUpUserDto: SignUpUserDto = {
                 name: name,
@@ -44,7 +48,6 @@ export default function SignUpForm() {
             };
             AuthService.authControllerSignUp(signUpUserDto)
                 .then((res) => {
-                    alert(JSON.stringify(res));
                     setVerify(true);
                 }).catch((error) => {
                     setFormMessage("Error during signUp: " + error.message);
@@ -57,14 +60,24 @@ export default function SignUpForm() {
     }
 
     async function handleVerify() {
-        setCodeValid(true);
-        await sleep(2000);
-        handleLogin();
+        setCodeError(false);
+        AuthService.authControllerSignIn({
+            email: email,
+            code: code,
+        }).then((res) => {
+            setCodeValid(true);
+            localStorage.setItem('X-AUTH-TOKEN', res['access_token']);
+            sleep(1000);
+            router.push('/');
+        }).catch((err) => {
+            setCodeError(true);
+        });
     }
 
     return (
         <>
             <PopUpMessage serverity="error" title="Error" message={formMessage} display={fromError}></PopUpMessage>
+            <PopUpMessage serverity="error" title="Error" message={'Inserted code is not valid'} display={codeError}></PopUpMessage>
             <PopUpMessage serverity="success" title="Success" message="Inserted code is valid" display={codeValid}></PopUpMessage>
             <Container>
                 <Logo/>
@@ -93,6 +106,9 @@ export default function SignUpForm() {
                             <TextField label="Code" onChange={setCode} required={true}></TextField>
                             <div className="mt-8 w-full">
                                 <Button text="Verify" onClick={handleVerify} style="primary"/>
+                            </div>
+                            <div className="mt-2 w-full">
+                                <Button text="Request new code" onClick={handleRegister} style="secondary"/>
                             </div>
                         </form>
                     </>

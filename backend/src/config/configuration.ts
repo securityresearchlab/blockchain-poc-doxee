@@ -5,4 +5,7 @@ export const configuration = () => ({
     DB: process.env.DB,
     OPENAPI_FILE_NAME: process.env.OPENAPI_FILE_NAME ?? "doxee-openapi.json",
     JWT_SECRET: process.env.JWT_SECRET,
+    MAIL_HOST: process.env.MAIL_HOST,
+    SMTP_USERNAME: process.env.SMTP_USERNAME,
+    SMTP_PASSWORD: process.env.SMTP_PASSWORD,
 })

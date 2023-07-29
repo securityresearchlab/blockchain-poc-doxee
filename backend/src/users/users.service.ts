@@ -3,9 +3,10 @@ import { User } from './entities/user';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SignUpUserDto } from './dto/signup-user-dto';
-import generateAuthCode from '../auth-code/utils/auth-code-generator';
 import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
 import { AuthCode } from 'src/auth-code/entities/auth-code';
+import { MailService } from 'src/mail/mail.service';
+import { AuthCodeService } from 'src/auth-code/auth-code.service';
 
 @Injectable()
 export class UsersService {
@@ -14,6 +15,8 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+        private authCodeService: AuthCodeService,
+        private mailService: MailService,
     ) {}
 
     async findOne(email: string): Promise<User> {
@@ -30,16 +33,16 @@ export class UsersService {
     async saveOne(signUpUserDto: SignUpUserDto) {
         const existingUser: User = await this.findOne(signUpUserDto.email);
         let user: User = existingUser ? existingUser : new User();
-        let authCode = generateAuthCode(ReasonEnum.SIGN_UP);
 
         // If user already exists then invalidate all existing codes and saving a new one.
         if (existingUser) {
-            this.logger.log('Generated code: ' + authCode.code + ' for user: ' + user.id);
-            authCode.user = existingUser;
             return await this.usersRepository.manager.transaction(
                 async (transactionManager) => {
                     await transactionManager.update(AuthCode, {user: existingUser}, {used: true});
-                    await transactionManager.save(authCode);
+                    const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, existingUser);
+                    user.authCodes.push(authCode);
+                    await transactionManager.save(user);
+                    await this.mailService.sendAuthCode(user, authCode.code);
                 }
             )
         }
@@ -52,10 +55,22 @@ export class UsersService {
         
         return await this.usersRepository.manager.transaction(
             async (transactionEntityManger) => {
-                authCode.user = await transactionEntityManger.save(user);
-                this.logger.log('Generated code: ' + authCode.code + ' for user: ' + user.id);
+                const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, 
+                    await transactionEntityManger.save(user));
                 await transactionEntityManger.save(authCode);
+                await this.mailService.sendAuthCode(user, authCode.code);
             }
         );
+    }
+
+    async verifyCodeAndActivateUser(user: User, authCode: string): Promise<any> {
+        return await this.usersRepository.manager.transaction(
+            async (transactionManger) => {
+                await this.authCodeService.verifyCode(user, authCode);
+                await transactionManger.update(AuthCode, {user: user}, {used: true});
+                user.active = true;
+                await transactionManger.save(user);
+            }
+        )
     }
 }

@@ -1,11 +1,13 @@
+import { User } from "src/users/entities/user";
 import { AuthCode } from "../entities/auth-code";
 import { ReasonEnum } from "../entities/reason-enum";
 
 const CODE_LENGTH = 8;
 
-export default function generateAuthCode(reason: ReasonEnum): AuthCode {
+export default function generateAuthCode(reason: ReasonEnum, user?: User): AuthCode {
     let authCode = new AuthCode(reason);
     authCode.code = generateCode(CODE_LENGTH);
+    authCode.user = user ? user : authCode.user;
     return authCode;
 }
 

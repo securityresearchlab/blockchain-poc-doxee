@@ -9,5 +9,6 @@ import { User } from 'src/users/entities/user';
   imports: [TypeOrmModule.forFeature([AuthCode, User])],
   providers: [AuthCodeService],
   controllers: [AuthCodeController],
+  exports: [AuthCodeService],
 })
 export class AuthCodeModule {}

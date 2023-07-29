@@ -36,7 +36,7 @@ export class AuthController {
     @ApiBody({type: SignUpUserDto})
     @ApiResponse({status: HttpStatus.OK, description: 'User created successfully.'})
     @ApiResponse({status: HttpStatus.INTERNAL_SERVER_ERROR, description: 'Error during registration process.'})
-    async signUp(@Res({passthrough: true}) res: Response, @Body() signUpUserDto: SignUpUserDto) {
+    async signUp(@Res() res: Response, @Body() signUpUserDto: SignUpUserDto) {
         try {
             await this.usersService.saveOne(signUpUserDto);
             res.status(HttpStatus.CREATED).send({});
