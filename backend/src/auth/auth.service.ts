@@ -29,6 +29,7 @@ export class AuthService {
         if(user && !loginUserDto.code) {
             const authCode = await this.authCodeSerice.generateNewAuthCode(ReasonEnum.LOGIN, user);
             await this.mailService.sendAuthCode(user, authCode.code);
+            return;
         }
 
         // Verify user and code

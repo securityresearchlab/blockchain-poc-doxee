@@ -4,7 +4,7 @@ import Button from "@/components/Button/Button";
 import Container from "@/components/Container/Container";
 import Logo from "@/components/Logo/Logo";
 import FileCardContainer from "@/components/FileCard/FileCardContainer";
-import { getFiles } from "@/model/chainFile";
+import { FILES } from "@/model/chainFile";
 import { User } from "@/model/user";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -23,6 +23,7 @@ export default function Home() {
   }
 
   function handleLogout() {
+    localStorage.removeItem('X-AUTH-TOKEN');
     router.push("/login")
   }
 
@@ -40,7 +41,7 @@ export default function Home() {
           <Button text="Logout" onClick={handleLogout} style="secondary"></Button>
         </div>
       </div>
-      <FileCardContainer files={getFiles()}></FileCardContainer>
+      <FileCardContainer files={FILES}></FileCardContainer>
     </Container>
   );
 }

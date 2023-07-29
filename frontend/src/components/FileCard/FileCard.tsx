@@ -16,7 +16,7 @@ export default function FileCard({...props}: Props) {
             <div className="flex flex-col w-full">
                 <div className="flex felx-row justify-between w-full flex-wrap">
                     <div><strong className="mb-4 text-xl">{props.file.id}</strong></div>
-                    <div>{props.file.uploadDate?.toLocaleDateString()}</div>
+                    <div>{props.file.uploadDate?.toDateString()}</div>
                 </div>
                 <div className="mb-2">{props.file.name + " (" + props.file.size + ")"}</div>
                 <div className="mb-2 font-semibold">{props.file.owner}</div>
