@@ -4,6 +4,7 @@ module.exports = {
     reactStrictMode: true,
     cssModules: true,
     experimental: {
+      appDir: true,
       externalDir: true,
     },
     webpack(config, options) {

@@ -20,7 +20,7 @@ export default function Button({...props}: Props) {
     }
 
     return (
-        <button className={props.style === "primary" ? primaryStyle : (props.style === "secondary" ? secondaryStyle : defaultStyle)} 
+        <button type='submit' className={props.style === "primary" ? primaryStyle : (props.style === "secondary" ? secondaryStyle : defaultStyle)} 
                 name={props.text} title={props.text} onClick={handleOnClick}>
             {props.text}
         </button>

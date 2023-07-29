@@ -36,15 +36,15 @@ export default function SignUpForm() {
 
     function handleRegister() {
         if(name && surname && organization && email) {
-            const singUpUserDto: SignUpUserDto = {
+            const signUpUserDto: SignUpUserDto = {
                 name: name,
                 surname: surname,
                 organization: organization,
                 email: email,
             };
-            AuthService.authControllerSignUp(singUpUserDto)
+            AuthService.authControllerSignUp(signUpUserDto)
                 .then((res) => {
-                    alert(res);
+                    alert(JSON.stringify(res));
                     setVerify(true);
                 }).catch((error) => {
                     setFormMessage("Error during signUp: " + error.message);
@@ -74,10 +74,10 @@ export default function SignUpForm() {
                         <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Insert data of your organization to complete the sign up</p>
                         <form id="singUpForm">
                             <div className="flex flex-col gap-2 w-full">
-                                    <TextField label="Name" onChange={setName}></TextField>
-                                    <TextField label="Surname" onChange={setSurname}></TextField>
-                                    <TextField label="Organization" onChange={setOrganization}></TextField>
-                                    <TextField label="Email" onChange={handleEmail}></TextField>
+                                    <TextField label="Name" onChange={setName} required={true}></TextField>
+                                    <TextField label="Surname" onChange={setSurname} required={true}></TextField>
+                                    <TextField label="Organization" onChange={setOrganization} required={true}></TextField>
+                                    <TextField label="Email" onChange={handleEmail} required={true}></TextField>
                             </div>
                             <div className="flex flex-col gap-2 w-full mt-8">
                                 <Button text="sign up" onClick={handleRegister} style="primary"/>
@@ -90,7 +90,7 @@ export default function SignUpForm() {
                     <>
                         <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Insert the code we have sent to your email: <strong>{email}</strong></p>
                         <form id="signUpCodeVerificationForm">
-                            <TextField label="Code" onChange={setCode}></TextField>
+                            <TextField label="Code" onChange={setCode} required={true}></TextField>
                             <div className="mt-8 w-full">
                                 <Button text="Verify" onClick={handleVerify} style="primary"/>
                             </div>
