@@ -30,15 +30,19 @@ export class UsersService {
         });
     }
 
+    /**
+     * Main process to register a new user to Doxee platform
+     * @param signUpUserDto 
+     * @returns 
+     */
     async saveOne(signUpUserDto: SignUpUserDto) {
         const existingUser: User = await this.findOne(signUpUserDto.email);
         let user: User = existingUser ? existingUser : new User();
 
-        // If user already exists then invalidate all existing codes and saving a new one.
+        // If user already exists then generate new auth code and saving a new one.
         if (existingUser) {
             return await this.usersRepository.manager.transaction(
                 async (transactionManager) => {
-                    await transactionManager.update(AuthCode, {user: existingUser}, {used: true});
                     const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, existingUser);
                     user.authCodes.push(authCode);
                     await transactionManager.save(user);
@@ -47,6 +51,7 @@ export class UsersService {
             )
         }
 
+        // Create new user
         user.name = signUpUserDto.name;
         user.surname = signUpUserDto.surname;
         user.organization = signUpUserDto.organization;
@@ -55,14 +60,21 @@ export class UsersService {
         
         return await this.usersRepository.manager.transaction(
             async (transactionEntityManger) => {
-                const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, 
-                    await transactionEntityManger.save(user));
+                const savedUser = await transactionEntityManger.save(user);
+                const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, savedUser);
                 await transactionEntityManger.save(authCode);
                 await this.mailService.sendAuthCode(user, authCode.code);
             }
         );
     }
 
+    /**
+     * Given an existing user and an auth code it invalidate used code and activate user.
+     * In this method if user is not active yet a new organization will be registered in the network.
+     * @param user 
+     * @param authCode 
+     * @returns 
+     */
     async verifyCodeAndActivateUser(user: User, authCode: string): Promise<any> {
         return await this.usersRepository.manager.transaction(
             async (transactionManger) => {

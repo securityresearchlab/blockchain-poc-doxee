@@ -16,6 +16,7 @@ export default function LoginForm() {
     const [verify, setVerify] = useState<boolean>();
     const [code, setCode] = useState<string>();
     const [codeValid, setCodeValid] = useState<boolean>(false);
+    const [codeError, setCodeError] = useState<boolean>(false);
     const [email, setEmail] = useState<string>();
     const [emailError, setEmailError] = useState<boolean>(false);
 
@@ -31,6 +32,10 @@ export default function LoginForm() {
             setEmailError(true);
     }
 
+    function handleGenerateNewCode() {
+
+    }
+
     function handleRegister() {
         router.push("/signup");
     }
@@ -44,6 +49,7 @@ export default function LoginForm() {
     return (
         <>
             <PopUpMessage serverity="error" title="Error" message="Inserterd email is not valid" display={emailError}></PopUpMessage>
+            <PopUpMessage serverity="error" title="Error" message={'Inserted code is not valid'} display={codeError}></PopUpMessage>
             <PopUpMessage serverity="success" title="Success" message="Inserted code is valid" display={codeValid}></PopUpMessage>
             <Container>
                 <Logo/>
@@ -64,6 +70,9 @@ export default function LoginForm() {
                         <TextField label="Code" onChange={setCode}></TextField>
                         <div className="mt-8 w-full">
                             <Button text="Verify" onClick={handleVerify} style="primary"/>
+                        </div>
+                        <div className="mt-2 w-full">
+                            <Button text="Request new code" onClick={handleGenerateNewCode} style="secondary"/>
                         </div>
                     </>
                 }
