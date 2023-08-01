@@ -69,7 +69,7 @@ export default function LoginForm() {
             setPopUpSeverity('success');
             setPopUpDisplay(true);
             localStorage.setItem('X-AUTH-TOKEN', res['access_token']);
-            sleep(1000);
+            sleep(1200);
             router.push('/');
         }).catch((err) => {
             setPopUpMessage('Inserted code is not valid');

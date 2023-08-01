@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { single } from 'rxjs';
 import { AuthCodeService } from 'src/auth-code/auth-code.service';
@@ -9,6 +9,7 @@ import { UsersService } from 'src/users/users.service';
 
 @Injectable()
 export class AuthService {
+    private readonly logger = new Logger(AuthService.name);
 
     constructor(
         private usersService: UsersService, 
@@ -33,14 +34,18 @@ export class AuthService {
         }
 
         // Verify user and code
-        if(user && loginUserDto.code)
-            await this.usersService.verifyCodeAndActivateUser(user, loginUserDto.code);
-        
+        if(user && loginUserDto.code) {
+            const verify = await this.usersService.verifyCodeAndActivateUser(user, loginUserDto.code);
 
-        // Generate Access Token
-        const payload = { sub: user.id, email: user.email };
-        return {
-            access_token: await this.jwtService.signAsync(payload),
-        };
+            if (verify) {
+                // Generate Access Token
+                const payload = { sub: user.id, email: user.email };
+                return {
+                    access_token: await this.jwtService.signAsync(payload),
+                };
+            }
+            return verify;
+        }
+        
     }
 }

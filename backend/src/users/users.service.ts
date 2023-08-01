@@ -78,10 +78,12 @@ export class UsersService {
     async verifyCodeAndActivateUser(user: User, authCode: string): Promise<any> {
         return await this.usersRepository.manager.transaction(
             async (transactionManger) => {
-                await this.authCodeService.verifyCode(user, authCode);
-                await transactionManger.update(AuthCode, {user: user}, {used: true});
-                user.active = true;
-                await transactionManger.save(user);
+                const verify = await this.authCodeService.verifyCode(user, authCode);
+                if (verify?.length > 0) {
+                    await transactionManger.update(AuthCode, {user: user}, {used: true});
+                    user.active = true;
+                    return await transactionManger.save(user);
+                } 
             }
         )
     }
