@@ -84,6 +84,7 @@ export class UsersService {
                     user.active = true;
                     return await transactionManger.save(user);
                 } 
+                throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
             }
         )
     }

@@ -47,9 +47,7 @@ export class AuthCodeService {
         
         this.logger.log(JSON.stringify(response));
 
-        if(response) return response;
-        
-        throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
+        return response;
     }
 
     async findAll(): Promise<Array<AuthCode>> {

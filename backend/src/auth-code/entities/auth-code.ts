@@ -14,7 +14,7 @@ export class AuthCode {
     @Column({enum: ReasonEnum})
     reason: string;
 
-    @Column()
+    @Column({length: 8})
     code: string;
 
     @CreateDateColumn()
