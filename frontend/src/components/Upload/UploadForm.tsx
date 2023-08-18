@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Container from "../Container/Container";
 import Logo from "../Logo/Logo";
 import TextField from "../TextField/TextField";
@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import FileSelect from "./FileSelect";
 import { File } from "buffer";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
+import { JwtUtilities } from "@/utils/jwtUtilities";
 
 export default function UploadForm() {
     const router = useRouter();
@@ -17,6 +18,12 @@ export default function UploadForm() {
     const [file, setFile] = useState<File>();
     const [fileError, setFileError] = useState<boolean>(false);
     const [fileWarning, setFileWarning] = useState<boolean>(false);
+
+    useEffect(() => {
+        const isExpired = JwtUtilities.isExpired(localStorage.getItem('X-AUTH-TOKEN'))
+        if(isExpired)
+            router.push('/login');
+      }, []);
 
     function handleOwner(value: any) {
         setOwner(value);
