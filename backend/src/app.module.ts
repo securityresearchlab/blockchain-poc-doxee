@@ -10,6 +10,7 @@ import { User } from './users/entities/user';
 import { AuthCode } from './auth-code/entities/auth-code';
 import { AuthCodeModule } from './auth-code/auth-code.module';
 import { MailModule } from './mail/mail.module';
+import { BlockchainModule } from './blockchain/blockchain.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { MailModule } from './mail/mail.module';
     UsersModule,
     AuthCodeModule,
     MailModule,
+    BlockchainModule,
   ],
 })
 export class AppModule {}

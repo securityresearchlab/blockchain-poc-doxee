@@ -3,11 +3,13 @@ import { UsersService } from './users.service';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from './entities/user';
 import { AuthCodeModule } from 'src/auth-code/auth-code.module';
+import { BlockchainModule } from 'src/blockchain/blockchain.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([User]),
-    AuthCodeModule
+    AuthCodeModule,
+    BlockchainModule
   ],
   providers: [UsersService],
   exports: [UsersService],

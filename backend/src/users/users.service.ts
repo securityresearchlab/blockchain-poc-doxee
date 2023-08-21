@@ -7,6 +7,7 @@ import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
 import { AuthCode } from 'src/auth-code/entities/auth-code';
 import { MailService } from 'src/mail/mail.service';
 import { AuthCodeService } from 'src/auth-code/auth-code.service';
+import { BlockchainService } from 'src/blockchain/blockchain.service';
 
 @Injectable()
 export class UsersService {
@@ -15,6 +16,7 @@ export class UsersService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
+        private blockchainService: BlockchainService,
         private authCodeService: AuthCodeService,
         private mailService: MailService,
     ) {}
@@ -80,6 +82,7 @@ export class UsersService {
             async (transactionManger) => {
                 const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) {
+                    await this.blockchainService.enrollOrg(user);
                     await transactionManger.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
                     return await transactionManger.save(user);

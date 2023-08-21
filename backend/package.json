@@ -38,6 +38,8 @@
     "class-validator": "^0.14.0",
     "class-validator-jsonschema": "^5.0.0",
     "ejs": "^3.1.9",
+    "fabric-ca-client": "^2.2.18",
+    "fabric-network": "^2.2.18",
     "joi": "^17.9.2",
     "mysql2": "^3.5.1",
     "nodemailer": "^6.9.4",
