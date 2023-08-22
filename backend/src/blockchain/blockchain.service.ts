@@ -13,6 +13,10 @@ import { readFile, writeFile } from 'fs/promises';
 export class BlockchainService {
     private readonly logger = new Logger(BlockchainService.name);
 
+    private readonly BASE_PATH = path.join(process.cwd(), 'src', 'blockchain');
+    private readonly SCRIPT_DIR_PATH = path.join(this.BASE_PATH, 'script');
+    private readonly CRYPTO_DIR_PATH = path.join(this.BASE_PATH, 'organizations', 'cryptogen');
+
     constructor() {}
 
     /**
@@ -39,16 +43,13 @@ export class BlockchainService {
      * @returns 
      */
     private async generateOrgFiles(user: User) {
-        const BASE_PATH = path.join(process.cwd(), 'src', 'blockchain');
-        const SCRIPT_DIR_PATH = path.join(BASE_PATH, 'script');
-        const CRYPTO_DIR_PATH = path.join(BASE_PATH, 'organizations', 'cryptogen');
-        const FILES = ['createOrgTemplate.sh', 'registerEnrolltemplate.sh', 'crypto-config-org-template.yaml'];
+        const FILES = ['createOrgTemplate.sh', 'registerEnrollTemplate.sh', 'crypto-config-org-template.yaml'];
 
         this.logger.log('Start generating files for organization: ' + user.organization);
 
-        const f1 = await this.generateFromTemplate(user, SCRIPT_DIR_PATH, FILES.at(0));
-        const f2 = await this.generateFromTemplate(user, SCRIPT_DIR_PATH, FILES.at(1));
-        const f3 = await this.generateFromTemplate(user, CRYPTO_DIR_PATH, FILES.at(2));
+        const f1 = await this.generateFromTemplate(user, this.SCRIPT_DIR_PATH, FILES.at(0));
+        const f2 = await this.generateFromTemplate(user, this.SCRIPT_DIR_PATH, FILES.at(1));
+        const f3 = await this.generateFromTemplate(user, this.CRYPTO_DIR_PATH, FILES.at(2));
 
         if (f1 && f2 && f3) {
             this.logger.log('Files generated for organization: ' + user.organization);
