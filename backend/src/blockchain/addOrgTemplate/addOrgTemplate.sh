@@ -157,13 +157,13 @@ function addOrgORGANIZATION_NAME_PLACEHOLDER () {
   # Use the CLI container to create the configuration transaction needed to add
   # OrgORGANIZATION_NAME_PLACEHOLDER to the network
   infoln "Generating and submitting config tx to add OrgORGANIZATION_NAME_PLACEHOLDER"
-  ${CONTAINER_CLI} exec cli ./scripts/orgORGANIZATION_NAME_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to create config tx"
   fi
 
   infoln "Joining OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
-  ${CONTAINER_CLI} exec cli ./scripts/orgORGANIZATION_NAME_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to join OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
   fi
