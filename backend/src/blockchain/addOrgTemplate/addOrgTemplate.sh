@@ -15,7 +15,7 @@ export PATH=${PWD}/../../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 export VERBOSE=false
 
-. ../scripts/utils.sh
+. ../../scripts/utils.sh
 
 : ${CONTAINER_CLI:="docker"}
 : ${CONTAINER_CLI_COMPOSE:="${CONTAINER_CLI}-compose"}
@@ -68,7 +68,7 @@ function generateOrgORGANIZATION_NAME_PLACEHOLDER() {
     infoln "Creating OrgORGANIZATION_NAME_PLACEHOLDER Identities"
 
     set -x
-    cryptogen generate --config=orgORGANIZATION_NAME_PLACEHOLDER-crypto.yaml --output="../organizations"
+    cryptogen generate --config=orgORGANIZATION_NAME_PLACEHOLDER-crypto.yaml --output="../../organizations"
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
@@ -113,7 +113,7 @@ function generateOrgORGANIZATION_NAME_PLACEHOLDERDefinition() {
   infoln "Generating OrgORGANIZATION_NAME_PLACEHOLDER organization definition"
   export FABRIC_CFG_PATH=$PWD
   set -x
-  configtxgen -printOrg OrgORGANIZATION_NAME_PLACEHOLDERMSP > ../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/orgORGANIZATION_NAME_PLACEHOLDER.json
+  configtxgen -printOrg OrgORGANIZATION_NAME_PLACEHOLDERMSP > ../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/orgORGANIZATION_NAME_PLACEHOLDER.json
   res=$?
   { set +x; } 2>/dev/null
   if [ $res -ne 0 ]; then
@@ -141,12 +141,12 @@ function OrgORGANIZATION_NAME_PLACEHOLDERUp () {
 # Generate the needed certificates, the genesis block and start the network.
 function addOrgORGANIZATION_NAME_PLACEHOLDER () {
   # If the test network is not up, abort
-  if [ ! -d ../organizations/ordererOrganizations ]; then
+  if [ ! -d ../../organizations/ordererOrganizations ]; then
     fatalln "ERROR: Please, run ./network.sh up createChannel first."
   fi
 
   # generate artifacts if they don't exist
-  if [ ! -d "../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com" ]; then
+  if [ ! -d "../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com" ]; then
     generateOrgORGANIZATION_NAME_PLACEHOLDER
     generateOrgORGANIZATION_NAME_PLACEHOLDERDefinition
   fi
@@ -157,13 +157,13 @@ function addOrgORGANIZATION_NAME_PLACEHOLDER () {
   # Use the CLI container to create the configuration transaction needed to add
   # OrgORGANIZATION_NAME_PLACEHOLDER to the network
   infoln "Generating and submitting config tx to add OrgORGANIZATION_NAME_PLACEHOLDER"
-  ${CONTAINER_CLI} exec cli ./scripts/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/generated/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to create config tx"
   fi
 
   infoln "Joining OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
-  ${CONTAINER_CLI} exec cli ./scripts/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/generated/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to join OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
   fi

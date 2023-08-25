@@ -3,6 +3,7 @@ import { User } from 'src/users/entities/user';
 import { readFile, readdir, writeFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
+import { exec } from 'child_process';
 
 /**
  * This service provides methods to invoke scripts in order to interact with network blockchain
@@ -14,6 +15,7 @@ export class BlockchainService {
     private readonly BASE_PATH = path.join(process.cwd(), 'src', 'blockchain');
     private readonly SCRIPT_DIR_PATH = path.join(this.BASE_PATH, 'scripts', 'org-template-scripts');
     private readonly ORG_DIR_PATH = path.join(this.BASE_PATH, 'addOrgTemplate');
+    private readonly MAKE_EXECUTABLE_SCRIPT_PATH = path.join(process.cwd(), 'src', 'blockchain', 'scripts', 'makeGeneratedScriptsExecutable.sh')
 
     constructor() {}
 
@@ -48,6 +50,11 @@ export class BlockchainService {
         
         // Generating folder structure in order to save new files
         await this.generateDirStructure(user);
+        exec(this.MAKE_EXECUTABLE_SCRIPT_PATH, (err, stdout, stderr) => {
+            this.logger.error(err);
+            this.logger.log(stdout);
+            this.logger.warn(stderr);
+        });
 
         // Read all template files
         let generatedFiles: Array<String> = new Array<String>();
@@ -103,6 +110,8 @@ export class BlockchainService {
             path.join('generated', 'addOrg' + user.name + user.surname, 'compose', 'podman', 'peercfg'),
             path.join('generated', 'addOrg' + user.name + user.surname, 'fabric-ca', 'org-' + user.name.toLowerCase() + user.surname.toLowerCase()),
             path.join('scripts', 'generated', 'org-' + user.name.toLowerCase() + user.surname.toLowerCase() + '-scripts'),
+            // path.join('organizations', 'peerOrganizations', 'org' + user.name + user.surname + '.example.com', 'peers', 'peer0.org' + user.name + user.surname + '.example.com'),
+            path.join('organizations', 'ordererOrganizations'),
         ]
 
         let currDirPath: string;
