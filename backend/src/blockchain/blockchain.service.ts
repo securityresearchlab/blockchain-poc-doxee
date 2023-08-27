@@ -4,10 +4,8 @@ import { readFile, readdir, writeFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 import { exec } from 'child_process';
+import { executeCommand, getFileList } from './utils';
 
-/**
- * This service provides methods to invoke scripts in order to interact with network blockchain
- */
 @Injectable()
 export class BlockchainService {
     private readonly logger = new Logger(BlockchainService.name);
@@ -30,7 +28,9 @@ export class BlockchainService {
         // 1. Generate files from templates
         await this.generateOrgFiles(user);
 
-        // 2. Invoke generated scripts [ joining channel , create private data collection with main organization]
+        // 2. Invoke generated scripts (joining channel , create private data collection with main organization)
+        const addOrgFilePath = path.join(process.cwd(), 'src', 'blockchain', 'generated', `addOrg${user.name}${user.surname}`, `addOrg${user.name}${user.surname}.sh`)
+        executeCommand(`${addOrgFilePath} up -c mychannel`, this.logger);
 
         // 3. Create org wallet
 
@@ -50,23 +50,21 @@ export class BlockchainService {
         
         // Generating folder structure in order to save new files
         await this.generateDirStructure(user);
-        exec(this.MAKE_EXECUTABLE_SCRIPT_PATH, (err, stdout, stderr) => {
-            this.logger.error(err);
-            this.logger.log(stdout);
-            this.logger.warn(stderr);
-        });
 
         // Read all template files
         let generatedFiles: Array<String> = new Array<String>();
-        const orgTemplateFiles: string[] = (await this.getFileList(this.ORG_DIR_PATH)).concat(...(await this.getFileList(this.SCRIPT_DIR_PATH)));
+        const orgTemplateFiles: string[] = (await getFileList(this.ORG_DIR_PATH)).concat(...(await getFileList(this.SCRIPT_DIR_PATH)));
 
         // Convert each template to a new file needed to create the new organization
         for(const file of orgTemplateFiles) {
             generatedFiles.push(await this.generateFromTemplate(user, file));
         }
 
-        if(generatedFiles.length == orgTemplateFiles.length)
+        if(generatedFiles.length == orgTemplateFiles.length) {
+            // Make generated scripts executable
+            executeCommand(this.MAKE_EXECUTABLE_SCRIPT_PATH, this.logger);
             return generatedFiles;
+        }
 
         this.logger.warn(`The number generated files (${generatedFiles.length}) is not corresponding to (${orgTemplateFiles.length})`)
         throw new HttpException('Error during Org initialization', HttpStatus.INTERNAL_SERVER_ERROR);
@@ -128,21 +126,4 @@ export class BlockchainService {
             
     }
 
-    async getFileList(dirName: string): Promise<string[]> {
-        let files: string[] = [];
-        const items = await readdir(dirName, { withFileTypes: true });
-    
-        for (const item of items) {
-            if (item.isDirectory()) {
-                files = [
-                    ...files,
-                    ...(await this.getFileList(`${dirName}/${item.name}`)),
-                ];
-            } else {
-                files.push(`${dirName}/${item.name}`);
-            }
-        }
-    
-        return files;
-    };
 }

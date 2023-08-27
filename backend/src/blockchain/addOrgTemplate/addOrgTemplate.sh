@@ -15,6 +15,7 @@ export PATH=${PWD}/../../bin:${PWD}:$PATH
 export FABRIC_CFG_PATH=${PWD}
 export VERBOSE=false
 
+cd "$(dirname "$0")"
 . ../../scripts/utils.sh
 
 : ${CONTAINER_CLI:="docker"}
