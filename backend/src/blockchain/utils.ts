@@ -1,5 +1,5 @@
 import { Logger } from "@nestjs/common";
-import { exec } from "child_process";
+import { exec, execFile } from "child_process";
 import { readdir } from "fs/promises";
 
 export async function getFileList(dirName: string): Promise<string[]> {
@@ -20,8 +20,8 @@ export async function getFileList(dirName: string): Promise<string[]> {
     return files;
 };
 
-export function executeCommand(command: string, logger: Logger) {
-    exec(command, (err, stdout, stderr) => {
+export function executeBashSript(command: string, args: Array<string>, logger: Logger) {
+    execFile(command, args, (err, stdout, stderr) => {
         if (err)
             logger.error(err);
         if (stdout)

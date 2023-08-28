@@ -3,8 +3,7 @@ import { User } from 'src/users/entities/user';
 import { readFile, readdir, writeFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
-import { exec } from 'child_process';
-import { executeCommand, getFileList } from './utils';
+import { executeBashSript, getFileList } from './utils';
 
 @Injectable()
 export class BlockchainService {
@@ -30,7 +29,7 @@ export class BlockchainService {
 
         // 2. Invoke generated scripts (joining channel , create private data collection with main organization)
         const addOrgFilePath = path.join(process.cwd(), 'src', 'blockchain', 'generated', `addOrg${user.name}${user.surname}`, `addOrg${user.name}${user.surname}.sh`)
-        executeCommand(`${addOrgFilePath} up -c mychannel`, this.logger);
+        executeBashSript(`${addOrgFilePath}`, ['up', '-c', 'mychannel'], this.logger);
 
         // 3. Create org wallet
 
@@ -62,7 +61,7 @@ export class BlockchainService {
 
         if(generatedFiles.length == orgTemplateFiles.length) {
             // Make generated scripts executable
-            executeCommand(this.MAKE_EXECUTABLE_SCRIPT_PATH, this.logger);
+            executeBashSript(this.MAKE_EXECUTABLE_SCRIPT_PATH, new Array<string>(), this.logger);
             return generatedFiles;
         }
 
@@ -108,7 +107,7 @@ export class BlockchainService {
             path.join('generated', 'addOrg' + user.name + user.surname, 'compose', 'podman', 'peercfg'),
             path.join('generated', 'addOrg' + user.name + user.surname, 'fabric-ca', 'org-' + user.name.toLowerCase() + user.surname.toLowerCase()),
             path.join('scripts', 'generated', 'org-' + user.name.toLowerCase() + user.surname.toLowerCase() + '-scripts'),
-            // path.join('organizations', 'peerOrganizations', 'org' + user.name + user.surname + '.example.com', 'peers', 'peer0.org' + user.name + user.surname + '.example.com'),
+            path.join('organizations', 'peerOrganizations', 'org' + user.name + user.surname + '.example.com', 'peers', 'peer0.org' + user.name + user.surname + '.example.com'),
             path.join('organizations', 'ordererOrganizations'),
         ]
 
