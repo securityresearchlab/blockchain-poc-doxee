@@ -59,6 +59,7 @@ function printHelp () {
 # Create Organziation crypto material using cryptogen or CAs
 function generateOrgORGANIZATION_NAME_PLACEHOLDER() {
   # Create crypto material using cryptogen
+  export PATH=${PWD}/../../bin:${PWD}:$PATH
   if [ "$CRYPTO" == "cryptogen" ]; then
     which cryptogen
     if [ "$?" -ne 0 ]; then
@@ -69,7 +70,7 @@ function generateOrgORGANIZATION_NAME_PLACEHOLDER() {
     infoln "Creating OrgORGANIZATION_NAME_PLACEHOLDER Identities"
 
     set -x
-    cryptogen generate --config=orgORGANIZATION_NAME_PLACEHOLDER-crypto.yaml --output="../../organizations"
+    cryptogen generate --config=org-ORGANIZATION_NAME_PLACEHOLDER-crypto.yaml --output="../../organizations"
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
@@ -158,13 +159,13 @@ function addOrgORGANIZATION_NAME_PLACEHOLDER () {
   # Use the CLI container to create the configuration transaction needed to add
   # OrgORGANIZATION_NAME_PLACEHOLDER to the network
   infoln "Generating and submitting config tx to add OrgORGANIZATION_NAME_PLACEHOLDER"
-  ${CONTAINER_CLI} exec cli ./scripts/generated/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ${PWD}/../../scripts/generated/org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to create config tx"
   fi
 
   infoln "Joining OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
-  ${CONTAINER_CLI} exec cli ./scripts/generated/org-ORGANIZATION_NAME_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ${PWD}/../../scripts/generated/org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to join OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
   fi

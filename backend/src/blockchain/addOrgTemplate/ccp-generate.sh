@@ -29,8 +29,8 @@ function yaml_ccp {
 ORG=3
 P0PORT=11051
 CAPORT=11054
-PEERPEM=../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/tlsca/tlsca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem
-CAPEM=../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/ca/ca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem
+PEERPEM=../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/tlsca/tlsca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem
+CAPEM=../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/ca/ca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem
 
-echo "$(json_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > ../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/connection-orgORGANIZATION_NAME_PLACEHOLDER.json
-echo "$(yaml_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > ../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/connection-orgORGANIZATION_NAME_PLACEHOLDER.yaml
+echo "$(json_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > ../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/connection-orgORGANIZATION_NAME_PLACEHOLDER.json
+echo "$(yaml_ccp $ORG $P0PORT $CAPORT $PEERPEM $CAPEM)" > ../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/connection-orgORGANIZATION_NAME_PLACEHOLDER.yaml

@@ -78,18 +78,20 @@ export class BlockchainService {
      */
     private async generateFromTemplate(user: User, fileName: string): Promise<String> {
         const ORGANIZATION_NAME_PLACEHOLDER = 'ORGANIZATION_NAME_PLACEHOLDER';
+        const ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER = 'ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER';
         const ORGANIZATION_DOMAIN_PLACEHOLDER = 'ORGANIZATION_DOMAIN_PLACEHOLDER';
 
         const newFilePath = path.join(fileName.replace('addOrgTemplate', 'generated/addOrg' + user.name + user.surname)
-            .replace('org-template-scripts', 'generated/org-' + user.name.toLowerCase() + user.surname.toLowerCase() + '-scripts')
+            .replace('org-template-scripts', 'generated/org-' + (user.name + user.surname).toLowerCase() + '-scripts')
             .replace('Template', user.name + user.surname)
-            .replace('template', user.name.toLowerCase() + user.surname.toLowerCase()));
+            .replace('template', (user.name + user.surname).toLowerCase()));
 
         try {
             this.logger.log('Generating file: ' + newFilePath);
             let data: string = (await readFile(fileName)).toString();
 
             data = data.replaceAll(ORGANIZATION_NAME_PLACEHOLDER, user.name + user.surname);
+            data = data.replaceAll(ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER, (user.name + user.surname).toLowerCase());
             data = data.replaceAll(ORGANIZATION_DOMAIN_PLACEHOLDER, user.organization);
 
             await writeFile(newFilePath, data, 'utf-8');
@@ -105,9 +107,9 @@ export class BlockchainService {
         const dirPath = [
             path.join('generated', 'addOrg' + user.name + user.surname, 'compose', 'docker', 'peercfg'),
             path.join('generated', 'addOrg' + user.name + user.surname, 'compose', 'podman', 'peercfg'),
-            path.join('generated', 'addOrg' + user.name + user.surname, 'fabric-ca', 'org-' + user.name.toLowerCase() + user.surname.toLowerCase()),
-            path.join('scripts', 'generated', 'org-' + user.name.toLowerCase() + user.surname.toLowerCase() + '-scripts'),
-            path.join('organizations', 'peerOrganizations', 'org' + user.name + user.surname + '.example.com', 'peers', 'peer0.org' + user.name + user.surname + '.example.com'),
+            path.join('generated', 'addOrg' + user.name + user.surname, 'fabric-ca', 'org-' + (user.name + user.surname).toLowerCase()),
+            path.join('scripts', 'generated', 'org-' + (user.name + user.surname).toLowerCase() + '-scripts'),
+            path.join('organizations', 'peerOrganizations'),
             path.join('organizations', 'ordererOrganizations'),
         ]
 

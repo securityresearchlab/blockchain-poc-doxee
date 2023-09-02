@@ -21,7 +21,7 @@ Organizations:
         # ID to load the MSP definition as
         ID: OrgORGANIZATION_NAME_PLACEHOLDERMSP
 
-        MSPDir: ../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp
+        MSPDir: ../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp
 
         Policies:
             Readers:

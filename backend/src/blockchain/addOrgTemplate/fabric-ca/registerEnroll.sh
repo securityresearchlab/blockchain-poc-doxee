@@ -7,9 +7,9 @@
 
 function createOrgORGANIZATION_NAME_PLACEHOLDER {
 	infoln "Enrolling the CA admin"
-	mkdir -p ../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/
+	mkdir -p ../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/
 
-	export FABRIC_CA_CLIENT_HOME=${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/
+	export FABRIC_CA_CLIENT_HOME=${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/
 
   set -x
   fabric-ca-client enroll -u https://admin:adminpw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
@@ -28,7 +28,7 @@ function createOrgORGANIZATION_NAME_PLACEHOLDER {
     OrganizationalUnitIdentifier: admin
   OrdererOUIdentifier:
     Certificate: cacerts/localhost-11054-ca-orgORGANIZATION_NAME_PLACEHOLDER.pem
-    OrganizationalUnitIdentifier: orderer' > "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
+    OrganizationalUnitIdentifier: orderer' > "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
 
 	infoln "Registering peer0"
   set -x
@@ -47,41 +47,41 @@ function createOrgORGANIZATION_NAME_PLACEHOLDER {
 
   infoln "Generating the peer0 msp"
   set -x
-	fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp" --csr.hosts peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
+	fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp" --csr.hosts peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
   { set +x; } 2>/dev/null
 
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml" "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml" "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
 
   infoln "Generating the peer0-tls certificates"
   set -x
-  fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls" --enrollment.profile tls --csr.hosts peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com --csr.hosts localhost --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
+  fabric-ca-client enroll -u https://peer0:peer0pw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls" --enrollment.profile tls --csr.hosts peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com --csr.hosts localhost --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
   { set +x; } 2>/dev/null
 
 
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/tlscacerts/"* "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/ca.crt"
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/signcerts/"* "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/server.crt"
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/keystore/"* "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/server.key"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/tlscacerts/"* "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/ca.crt"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/signcerts/"* "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/server.crt"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/keystore/"* "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/server.key"
 
-  mkdir "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/tlscacerts"
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/tlscacerts/"* "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/tlscacerts/ca.crt"
+  mkdir "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/tlscacerts"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/tlscacerts/"* "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/tlscacerts/ca.crt"
 
-  mkdir "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/tlsca"
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/tlscacerts/"* "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/tlsca/tlsca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem"
+  mkdir "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/tlsca"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/tls/tlscacerts/"* "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/tlsca/tlsca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem"
 
-  mkdir "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/ca"
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/cacerts/"* "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/ca/ca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem"
+  mkdir "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/ca"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/cacerts/"* "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/ca/ca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem"
 
   infoln "Generating the user msp"
   set -x
-	fabric-ca-client enroll -u https://user1:user1pw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/User1@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp" --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
+	fabric-ca-client enroll -u https://user1:user1pw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/User1@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp" --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
   { set +x; } 2>/dev/null
 
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml" "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/User1@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml" "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/User1@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
 
   infoln "Generating the org admin msp"
   set -x
-	fabric-ca-client enroll -u https://orgORGANIZATION_NAME_PLACEHOLDERadmin:orgORGANIZATION_NAME_PLACEHOLDERadminpw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/Admin@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp" --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
+	fabric-ca-client enroll -u https://orgORGANIZATION_NAME_PLACEHOLDERadmin:orgORGANIZATION_NAME_PLACEHOLDERadminpw@localhost:11054 --caname ca-orgORGANIZATION_NAME_PLACEHOLDER -M "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/Admin@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp" --tls.certfiles "${PWD}/fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER/tls-cert.pem"
   { set +x; } 2>/dev/null
 
-  cp "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml" "${PWD}/../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/Admin@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
+  cp "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml" "${PWD}/../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/users/Admin@orgORGANIZATION_NAME_PLACEHOLDER.example.com/msp/config.yaml"
 }

@@ -1,5 +1,6 @@
 # Blockchain organization files
 generated/
+organizations/
 
 # compiled output
 /dist
