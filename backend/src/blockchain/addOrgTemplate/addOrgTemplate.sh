@@ -12,7 +12,7 @@
 # prepending $PWD/../bin to PATH to ensure we are picking up the correct binaries
 # this may be commented out to resolve installed version of tools if desired
 export PATH=${PWD}/../../bin:${PWD}:$PATH
-export FABRIC_CFG_PATH=${PWD}
+export FABRIC_CFG_PATH=${PWD}/src/blockchain/addOrgORGANIZATION_NAME_PLACEHOLDER
 export VERBOSE=false
 
 cd "$(dirname "$0")"
@@ -70,7 +70,7 @@ function generateOrgORGANIZATION_NAME_PLACEHOLDER() {
     infoln "Creating OrgORGANIZATION_NAME_PLACEHOLDER Identities"
 
     set -x
-    cryptogen generate --config=org-ORGANIZATION_NAME_PLACEHOLDER-crypto.yaml --output="../../organizations"
+    cryptogen generate --config=org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER-crypto.yaml --output="${PWD}/../../organizations"
     res=$?
     { set +x; } 2>/dev/null
     if [ $res -ne 0 ]; then
@@ -91,7 +91,7 @@ function generateOrgORGANIZATION_NAME_PLACEHOLDER() {
     fi
 
     infoln "Generating certificates using Fabric CA"
-    ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_CA_BASE} -f $COMPOSE_FILE_CA_ORG3 up -d 2>&1
+    ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_CA_BASE} -f $COMPOSE_FILE_CA_ORG_ORGANIZATION_NAME_PLACEHOLDER up -d 2>&1
 
     . fabric-ca/registerEnroll.sh
 
@@ -113,7 +113,7 @@ function generateOrgORGANIZATION_NAME_PLACEHOLDERDefinition() {
     fatalln "configtxgen tool not found. exiting"
   fi
   infoln "Generating OrgORGANIZATION_NAME_PLACEHOLDER organization definition"
-  export FABRIC_CFG_PATH=$PWD
+  export FABRIC_CFG_PATH=${PWD}/src/blockchain/addOrgORGANIZATION_NAME_PLACEHOLDER
   set -x
   configtxgen -printOrg OrgORGANIZATION_NAME_PLACEHOLDERMSP > ../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/orgORGANIZATION_NAME_PLACEHOLDER.json
   res=$?
@@ -127,13 +127,13 @@ function OrgORGANIZATION_NAME_PLACEHOLDERUp () {
   # start orgORGANIZATION_NAME_PLACEHOLDER nodes
 
   if [ "$CONTAINER_CLI" == "podman" ]; then
-    cp ../podman/core.yaml ../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/
+    cp ../podman/core.yaml ../../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/peers/peer0.orgORGANIZATION_NAME_PLACEHOLDER.example.com/
   fi
 
   if [ "${DATABASE}" == "couchdb" ]; then
-    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_BASE} -f $COMPOSE_FILE_ORG3 -f ${COMPOSE_FILE_COUCH_BASE} -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
+    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_BASE} -f $COMPOSE_FILE_ORG_ORGANIZATION_NAME_PLACEHOLDER -f ${COMPOSE_FILE_COUCH_BASE} -f $COMPOSE_FILE_COUCH_ORG3 up -d 2>&1
   else
-    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_BASE} -f $COMPOSE_FILE_ORG3 up -d 2>&1
+    DOCKER_SOCK=${DOCKER_SOCK} ${CONTAINER_CLI_COMPOSE} -f ${COMPOSE_FILE_BASE} -f $COMPOSE_FILE_ORG_ORGANIZATION_NAME_PLACEHOLDER up -d 2>&1
   fi
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to start OrgORGANIZATION_NAME_PLACEHOLDER network"
@@ -156,16 +156,17 @@ function addOrgORGANIZATION_NAME_PLACEHOLDER () {
   infoln "Bringing up OrgORGANIZATION_NAME_PLACEHOLDER peer"
   OrgORGANIZATION_NAME_PLACEHOLDERUp
 
+  echo "FABRIC_CFG_PATH: ${FABRIC_CFG_PATH}"
   # Use the CLI container to create the configuration transaction needed to add
   # OrgORGANIZATION_NAME_PLACEHOLDER to the network
   infoln "Generating and submitting config tx to add OrgORGANIZATION_NAME_PLACEHOLDER"
-  ${CONTAINER_CLI} exec cli ${PWD}/../../scripts/generated/org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/generated/org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER-scripts/updateChannelConfig.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to create config tx"
   fi
 
   infoln "Joining OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
-  ${CONTAINER_CLI} exec cli ${PWD}/../../scripts/generated/org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
+  ${CONTAINER_CLI} exec cli ./scripts/generated/org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER-scripts/joinChannel.sh $CHANNEL_NAME $CLI_DELAY $CLI_TIMEOUT $VERBOSE
   if [ $? -ne 0 ]; then
     fatalln "ERROR !!!! Unable to join OrgORGANIZATION_NAME_PLACEHOLDER peers to network"
   fi
@@ -187,14 +188,14 @@ CLI_DELAY=3
 # channel name defaults to "mychannel"
 CHANNEL_NAME="mychannel"
 # use this as the docker compose couch file
-COMPOSE_FILE_COUCH_BASE=compose/compose-couch-org-ORGANIZATION_NAME_PLACEHOLDER.yaml
-COMPOSE_FILE_COUCH_ORG3=compose/${CONTAINER_CLI}/docker-compose-couch-org-ORGANIZATION_NAME_PLACEHOLDER.yaml
+COMPOSE_FILE_COUCH_BASE=compose/compose-couch-org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER.yaml
+COMPOSE_FILE_COUCH_ORG3=compose/${CONTAINER_CLI}/docker-compose-couch-org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER.yaml
 # use this as the default docker-compose yaml definition
 COMPOSE_FILE_BASE=compose/compose-org-ORGANIZATION_NAME_PLACEHOLDER.yaml
-COMPOSE_FILE_ORG3=compose/${CONTAINER_CLI}/docker-compose-org-ORGANIZATION_NAME_PLACEHOLDER.yaml
+COMPOSE_FILE_ORG_ORGANIZATION_NAME_PLACEHOLDER=compose/${CONTAINER_CLI}/docker-compose-org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER.yaml
 # certificate authorities compose file
-COMPOSE_FILE_CA_BASE=compose/compose-ca-org-ORGANIZATION_NAME_PLACEHOLDER.yaml
-COMPOSE_FILE_CA_ORG3=compose/${CONTAINER_CLI}/docker-compose-ca-org-ORGANIZATION_NAME_PLACEHOLDER.yaml
+COMPOSE_FILE_CA_BASE=compose/compose-ca-org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER.yaml
+COMPOSE_FILE_CA_ORG_ORGANIZATION_NAME_PLACEHOLDER=compose/${CONTAINER_CLI}/docker-compose-ca-org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER.yaml
 # database
 DATABASE="leveldb"
 

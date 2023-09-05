@@ -23,5 +23,5 @@ services:
       - "11054:11054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw -d'
     volumes:
-      - ../fabric-ca/orgORGANIZATION_NAME_PLACEHOLDER:/etc/hyperledger/fabric-ca-server
+      - ../fabric-ca/org-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER:/etc/hyperledger/fabric-ca-server
     container_name: ca_orgORGANIZATION_NAME_PLACEHOLDER

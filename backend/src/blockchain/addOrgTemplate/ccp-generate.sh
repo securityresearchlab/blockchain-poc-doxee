@@ -7,26 +7,28 @@ function one_line_pem {
 function json_ccp {
     local PP=$(one_line_pem $4)
     local CP=$(one_line_pem $5)
+
     sed -e "s/\${ORG}/$1/" \
         -e "s/\${P0PORT}/$2/" \
         -e "s/\${CAPORT}/$3/" \
         -e "s#\${PEERPEM}#$PP#" \
         -e "s#\${CAPEM}#$CP#" \
-        ccp-template.json
+        ccp-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER.json
 }
 
 function yaml_ccp {
     local PP=$(one_line_pem $4)
     local CP=$(one_line_pem $5)
+
     sed -e "s/\${ORG}/$1/" \
         -e "s/\${P0PORT}/$2/" \
         -e "s/\${CAPORT}/$3/" \
         -e "s#\${PEERPEM}#$PP#" \
         -e "s#\${CAPEM}#$CP#" \
-        ccp-template.yaml | sed -e $'s/\\\\n/\\\n          /g'
+        ccp-ORGANIZATION_NAME_LOWERCASE_PLACEHOLDER.yaml | sed -e $'s/\\\\n/\\\n          /g'
 }
 
-ORG=3
+ORG=ORGANIZATION_NAME_PLACEHOLDER
 P0PORT=11051
 CAPORT=11054
 PEERPEM=../../organizations/peerOrganizations/orgORGANIZATION_NAME_PLACEHOLDER.example.com/tlsca/tlsca.orgORGANIZATION_NAME_PLACEHOLDER.example.com-cert.pem
