@@ -20,13 +20,18 @@ export async function getFileList(dirName: string): Promise<string[]> {
     return files;
 };
 
-export function executeBashSript(command: string, args: Array<string>, logger: Logger) {
-    execFile(command, args, (err, stdout, stderr) => {
-        if (err)
-            logger.error(err);
-        if (stdout)
-            logger.log(stdout);
-        if (stderr)
-            logger.warn(stderr);
+export async function executeBashSript(command: string, args: Array<string>, logger: Logger) {
+    return new Promise((resolve, reject) => {
+        execFile(command, args, (err, stdout, stderr) => {
+            if (err)
+                logger.error(err);
+            if (stdout) {
+                logger.log(stdout);
+                resolve(stdout);
+            }
+            if (stderr)
+                logger.warn(stderr);
+            resolve(undefined);
+        });
     });
 }
