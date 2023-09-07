@@ -4,6 +4,7 @@ import { readFile, readdir, writeFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 import { executeBashSript, getFileList } from './utils';
+import { MailService } from 'src/mail/mail.service';
 
 @Injectable()
 export class BlockchainService {
@@ -14,7 +15,7 @@ export class BlockchainService {
     private readonly ORG_DIR_PATH = path.join(this.BASE_PATH, 'addOrgTemplate');
     private readonly MAKE_EXECUTABLE_SCRIPT_PATH = path.join(process.cwd(), 'src', 'blockchain', 'scripts', 'makeGeneratedScriptsExecutable.sh')
 
-    constructor() {}
+    constructor(private mailService: MailService) {}
 
     /**
      * Generates all files needed to create a new organization, invokes scripts and creates a wallet
@@ -25,9 +26,17 @@ export class BlockchainService {
         this.logger.log('Start enrolling organization: ' + user.organization);
 
         const awsGenerateInvitationScriptPath = path.join(process.cwd(), 'src', 'blockchain', 'scripts', 'awsGenerateInvitation.sh');
-        const proposalId = await executeBashSript(awsGenerateInvitationScriptPath, ['Account'], this.logger);
+        const proposalId: string = await executeBashSript(awsGenerateInvitationScriptPath, ['Account'], this.logger)
+            .then(res => {
+                if(res) return res.replaceAll('"', "");
+                return res;
+            });
 
         this.logger.log("proposalId generated: " + proposalId);
+
+        // Send proposalId to client Email
+        if (proposalId) await this.mailService.sendProposalId(user, proposalId);
+
         // 1. Generate files from templates
         // await this.generateOrgFiles(user);
 
