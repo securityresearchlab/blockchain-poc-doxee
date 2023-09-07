@@ -24,16 +24,20 @@ export class BlockchainService {
     async enrollOrg(user: User) {
         this.logger.log('Start enrolling organization: ' + user.organization);
 
+        const awsGenerateInvitationScriptPath = path.join(process.cwd(), 'src', 'blockchain', 'scripts', 'awsGenerateInvitation.sh');
+        const proposalId = await executeBashSript(awsGenerateInvitationScriptPath, ['Account'], this.logger);
+
+        this.logger.log("proposalId generated: " + proposalId);
         // 1. Generate files from templates
-        await this.generateOrgFiles(user);
+        // await this.generateOrgFiles(user);
 
-        // 2. Invoke generated scripts (joining channel , create private data collection with main organization)
-        const addOrgFilePath = path.join(process.cwd(), 'src', 'blockchain', 'generated', `addOrg${user.name}${user.surname}`, `addOrg${user.name}${user.surname}.sh`)
-        executeBashSript(`${addOrgFilePath}`, ['up', '-c', 'mychannel'], this.logger);
+        // // 2. Invoke generated scripts (joining channel , create private data collection with main organization)
+        // const addOrgFilePath = path.join(process.cwd(), 'src', 'blockchain', 'generated', `addOrg${user.name}${user.surname}`, `addOrg${user.name}${user.surname}.sh`)
+        // executeBashSript(`${addOrgFilePath}`, ['up', '-c', 'mychannel'], this.logger);
 
-        // 3. Create org wallet
+        // // 3. Create org wallet
 
-        this.logger.log('Organization ' + user.organization + ' enrolled');
+        // this.logger.log('Organization ' + user.organization + ' enrolled');
 
         // For testing purposes
         throw new HttpException('Error during Org initialization', HttpStatus.INTERNAL_SERVER_ERROR);
