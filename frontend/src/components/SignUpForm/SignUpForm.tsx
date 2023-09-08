@@ -19,7 +19,8 @@ export default function SignUpForm() {
     const [code, setCode] = useState<string>('');
     const [name, setName] = useState<string>('');
     const [surname, setSurname] = useState <string>('');
-    const [organization, setOrganization] = useState<string>();
+    const [organization, setOrganization] = useState<string>('');
+    const [awsClientId, setAwsClientId] = useState<string>('');
     const [email, setEmail] = useState<string>('');
     const [popUpDisplay, setPopUpDisplay] = useState<boolean>(false);
     const [popUpSeverity, setPopUpSeverity] = useState<'error' | 'warning' | 'success' | 'info'>('info');
@@ -42,6 +43,7 @@ export default function SignUpForm() {
                 name: name,
                 surname: surname,
                 organization: organization,
+                awsClientId: awsClientId,
                 email: email,
             };
             AuthService.authControllerSignUp(signUpUserDto)
@@ -65,11 +67,7 @@ export default function SignUpForm() {
             email: email,
             code: code,
         }).then((res) => {
-            setPopUpMessage('Inserted code is correct');
-            setPopUpSeverity('success');
-            setPopUpDisplay(true);
             localStorage.setItem('X-AUTH-TOKEN', res['access_token']);
-            sleep(1000);
             router.push('/');
         }).catch((err) => {
             setPopUpMessage('Inserted code is not valid');
@@ -85,6 +83,7 @@ export default function SignUpForm() {
                 name: name,
                 surname: surname,
                 organization: organization,
+                awsClientId: awsClientId,
                 email: email,
             };
             AuthService.authControllerSignUp(signUpUserDto)
@@ -118,6 +117,7 @@ export default function SignUpForm() {
                                 <TextField label="Name" onChange={setName} required={true}></TextField>
                                 <TextField label="Surname" onChange={setSurname} required={true}></TextField>
                                 <TextField label="Organization" onChange={setOrganization} required={true}></TextField>
+                                <TextField label="Aws Client ID" onChange={setAwsClientId} required={true}></TextField>
                                 <TextField label="Email" onChange={setEmail} required={true}></TextField>
                         </div>
                         <div className="flex flex-col gap-2 w-full mt-8">

@@ -9,25 +9,24 @@ import { User } from "@/model/user";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { JwtUtilities } from "@/utils/jwtUtilities";
-
-const mockUser: User = new User(
-  "Alessandro", "Foglia", "org.ale.foglia", "alessandro.foglia@outlook.it"
-);
+import { OpenAPI, UsersService } from "@/openapi";
 
 export default function Home() {
   const router = useRouter();
 
-  const [user, setUser] = useState<User>(mockUser);
+  const [user, setUser] = useState<User>();
 
   useEffect(() => {
-    const isExpired = JwtUtilities.isExpired(localStorage.getItem('X-AUTH-TOKEN'))
+    const jwtToken: string | null = localStorage.getItem('X-AUTH-TOKEN');
+    const isExpired = JwtUtilities.isExpired(jwtToken);
     if(isExpired)
       handleLogout();
+    if(jwtToken) {
+      OpenAPI.TOKEN = localStorage.getItem("X-AUTH-TOKEN")!;
+      UsersService.usersControllerGetUser(JwtUtilities.getEmail(jwtToken))
+        .then(res => { setUser(res); })
+    }
   }, []);
-
-  function handleUpload() {
-    router.push("/upload")
-  }
 
   function handleLogout() {
     localStorage.removeItem('X-AUTH-TOKEN');
@@ -35,20 +34,20 @@ export default function Home() {
   }
 
   return (
-    <Container fullScreen={true}>
-      <div className="flex flex-row justify-around items-center w-full">
+    <Container>
         <Logo/>
-        <p className="text-gray-600 mt-4">{user?.email}&nbsp;<strong>[{user?.organization}]</strong></p>
-      </div>
-      <hr className="w-full h-1 border-gray-500 shadow-xl mb-4 mt-4"></hr>
-      <div className="flex flex-row justify-around items-center w-full">
-        <h2 className="text-2xl text-gray-700 font-bold w-full underline">Recently files</h2>
-        <div className="flex felx-wrap w-2/4 gap-2">
-          <Button text="Upload new file" onClick={handleUpload} style="primary"></Button>
+        <hr className="bg-gray-500 h-0.5 w-full mb-4 shadow-xl"/>
+        <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal text-center">
+          The <strong>Proposal ID</strong> was sent to your<br/>email <strong>{user?.email}</strong>
+        </p>
+        <div className="flex flex-col gap-2">
+            <div><div className="font-semibold">Organization</div>{user?.organization}</div>
+            <div><div className="font-semibold">Aws Client ID</div>{user?.awsClientId}</div>
+            <div><div className="font-semibold">Proposal ID</div>{user?.proposalId}</div>
+        </div>
+        <div className="w-full mt-8">
           <Button text="Logout" onClick={handleLogout} style="secondary"></Button>
         </div>
-      </div>
-      <FileCardContainer files={FILES}></FileCardContainer>
     </Container>
   );
 }

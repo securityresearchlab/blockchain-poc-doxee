@@ -7,6 +7,7 @@ export type SignUpUserDto = {
     name: string;
     surname: string;
     organization: string;
+    awsClientId: string;
     email: string;
 };
 

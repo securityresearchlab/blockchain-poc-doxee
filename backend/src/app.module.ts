@@ -11,6 +11,7 @@ import { AuthCode } from './auth-code/entities/auth-code';
 import { AuthCodeModule } from './auth-code/auth-code.module';
 import { MailModule } from './mail/mail.module';
 import { BlockchainModule } from './blockchain/blockchain.module';
+import { UsersController } from './users/users.controller';
 
 @Module({
   imports: [

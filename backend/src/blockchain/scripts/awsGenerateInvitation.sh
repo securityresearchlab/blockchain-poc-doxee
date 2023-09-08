@@ -10,7 +10,9 @@ if [[ $# -lt 3 ]] ; then
     exit 0
 fi
 
-aws managedblockchain create-proposal \
---actions Invitations=[{Principal=$1}] \
---network-id $2 \
---member-id $3
+echo "p-proposalIdMock"
+
+# aws managedblockchain create-proposal \
+# --actions Invitations=[{Principal=$1}] \
+# --network-id $2 \
+# --member-id $3

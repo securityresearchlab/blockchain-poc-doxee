@@ -12,3 +12,4 @@ export type { SignUpUserDto } from './models/SignUpUserDto';
 
 export { AuthService } from './services/AuthService';
 export { DefaultService } from './services/DefaultService';
+export { UsersService } from './services/UsersService';
