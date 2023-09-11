@@ -5,6 +5,6 @@
 
 export type LoginUserDto = {
     email: string;
-    code?: any;
+    code?: string;
 };
 

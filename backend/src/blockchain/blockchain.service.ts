@@ -4,6 +4,8 @@ import { readFile, readdir, writeFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 import { executeBashSript, getFileList } from './utils';
+import { MailService } from 'src/mail/mail.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class BlockchainService {
@@ -14,28 +16,41 @@ export class BlockchainService {
     private readonly ORG_DIR_PATH = path.join(this.BASE_PATH, 'addOrgTemplate');
     private readonly MAKE_EXECUTABLE_SCRIPT_PATH = path.join(process.cwd(), 'src', 'blockchain', 'scripts', 'makeGeneratedScriptsExecutable.sh')
 
-    constructor() {}
+    constructor(
+        private configService: ConfigService, 
+        private mailService: MailService
+    ) {}
 
     /**
      * Generates all files needed to create a new organization, invokes scripts and creates a wallet
      * @param user 
      * @returns 
      */
-    async enrollOrg(user: User) {
+    async enrollOrg(user: User): Promise<string> {
         this.logger.log('Start enrolling organization: ' + user.organization);
 
-        // 1. Generate files from templates
-        await this.generateOrgFiles(user);
+        const awsGenerateInvitationScriptPath = path.join(process.cwd(), 'src', 'blockchain', 'scripts', 'awsGenerateInvitation.sh');
+        const proposalId: string = await executeBashSript(
+            awsGenerateInvitationScriptPath, 
+            [
+                this.configService.get('AWS_ACCOUNT_ID'),
+                this.configService.get('AWS_NETWORK_ID'),
+                this.configService.get('AWS_MEMBER_ID'),
+            ], 
+            this.logger
+        ).then(res => {
+            if(res) return JSON.parse(res)['ProposalId'];
+            return res;
+        });
 
-        // 2. Invoke generated scripts (joining channel , create private data collection with main organization)
-        const addOrgFilePath = path.join(process.cwd(), 'src', 'blockchain', 'generated', `addOrg${user.name}${user.surname}`, `addOrg${user.name}${user.surname}.sh`)
-        executeBashSript(`${addOrgFilePath}`, ['up', '-c', 'mychannel'], this.logger);
+        this.logger.log("proposalId generated: " + proposalId);
 
-        // 3. Create org wallet
+        // Send proposalId to client Email
+        if (proposalId) {
+            this.mailService.sendProposalId(user, proposalId);
+            return proposalId
+        }
 
-        this.logger.log('Organization ' + user.organization + ' enrolled');
-
-        // For testing purposes
         throw new HttpException('Error during Org initialization', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 

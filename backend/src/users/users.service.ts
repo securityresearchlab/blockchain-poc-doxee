@@ -22,7 +22,7 @@ export class UsersService {
     ) {}
 
     async findOne(email: string): Promise<User> {
-        return this.usersRepository.findOne({
+        return await this.usersRepository.findOne({
             relations: {
                 authCodes: true,
             },
@@ -57,6 +57,7 @@ export class UsersService {
         user.name = signUpUserDto.name;
         user.surname = signUpUserDto.surname;
         user.organization = signUpUserDto.organization;
+        user.awsClientId = signUpUserDto.awsClientId;
         user.email = signUpUserDto.email;
         user.authCodes = new Array();
         
@@ -65,7 +66,7 @@ export class UsersService {
                 const savedUser = await transactionEntityManger.save(user);
                 const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, savedUser);
                 await transactionEntityManger.save(authCode);
-                await this.mailService.sendAuthCode(user, authCode.code);
+                this.mailService.sendAuthCode(user, authCode.code);
             }
         );
     }
@@ -82,11 +83,29 @@ export class UsersService {
             async (transactionManger) => {
                 const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) {
-                    await this.blockchainService.enrollOrg(user);
+                    user.proposalId = await this.blockchainService.enrollOrg(user);
                     await transactionManger.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
                     return await transactionManger.save(user);
                 } 
+                throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
+            }
+        )
+    }
+
+    /**
+     * Given an existing user and an auth code it invalidate used code and activate user.
+     * In this method if user is not active yet a new organization will be registered in the network.
+     * @param user 
+     * @param authCode 
+     * @returns 
+     */
+    async verifyCode(user: User, authCode: string): Promise<any> {
+        return await this.usersRepository.manager.transaction(
+            async (transactionManger) => {
+                const verify = await this.authCodeService.verifyCode(user, authCode);
+                if (verify?.length > 0) 
+                    return await transactionManger.update(AuthCode, {user: user}, {used: true});
                 throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
             }
         )

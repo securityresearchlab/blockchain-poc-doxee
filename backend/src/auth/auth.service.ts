@@ -29,13 +29,15 @@ export class AuthService {
         // Generate new code and send it via email service
         if(user && !loginUserDto.code) {
             const authCode = await this.authCodeSerice.generateNewAuthCode(ReasonEnum.LOGIN, user);
-            await this.mailService.sendAuthCode(user, authCode.code);
+            this.mailService.sendAuthCode(user, authCode.code);
             return;
         }
 
         // Verify user and code
         if(user && loginUserDto.code) {
-            const verify = await this.usersService.verifyCodeAndActivateUser(user, loginUserDto.code);
+            // If user is already active then validate just the auth code. Otherwise the activation of the user will be performed
+            const verify = user.active ? await this.usersService.verifyCode(user, loginUserDto.code) :
+                await this.usersService.verifyCodeAndActivateUser(user, loginUserDto.code);
 
             if (verify) {
                 // Generate Access Token

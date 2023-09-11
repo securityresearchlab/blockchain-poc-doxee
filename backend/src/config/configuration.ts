@@ -8,4 +8,7 @@ export const configuration = () => ({
     MAIL_HOST: process.env.MAIL_HOST,
     SMTP_USERNAME: process.env.SMTP_USERNAME,
     SMTP_PASSWORD: process.env.SMTP_PASSWORD,
+    AWS_ACCOUNT_ID: process.env.AWS_ACCOUNT_ID,
+    AWS_NETWORK_ID: process.env.AWS_NETWORK_ID,
+    AWS_MEMBER_ID: process.env.AWS_MEMBER_ID,
 })

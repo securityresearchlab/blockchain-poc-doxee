@@ -7,11 +7,14 @@ import { User } from 'src/users/entities/user';
 @Injectable()
 export class MailService {
     private readonly logger = new Logger(MailService.name);
-    private readonly templatePath = '/src/mail/templates/authentication-code.ejs';
-    private template: String;
+    private readonly authCodeTemplatePath = '/src/mail/templates/authentication-code.ejs';
+    private readonly proposalIdTemplatePath = '/src/mail/templates/proposal-id.ejs';
+    private authCodeTemplate: String;
+    private proposalIdTemplate: String;
     
     constructor(private mailserService: MailerService) {
-        this.template = readFileSync(join(process.cwd(), this.templatePath)).toString();
+        this.authCodeTemplate = readFileSync(join(process.cwd(), this.authCodeTemplatePath)).toString();
+        this.proposalIdTemplate = readFileSync(join(process.cwd(), this.proposalIdTemplatePath)).toString();
     }
 
     async sendAuthCode(user: User, authCode: string) {
@@ -19,14 +22,20 @@ export class MailService {
         await this.mailserService.sendMail({
             to: user.email,
             subject: '[Doxee] Authentication Code',
-            // template: './authentication-code',
-            // context: {
-            //     name: user.name,
-            //     authcode: authCode,
-            // }
-            html: this.template
+            html: this.authCodeTemplate
                 .replace('<%= locals.name %>', user.name)
                 .replace('<%= locals.authcode %>', authCode),
+        });
+    }
+
+    async sendProposalId(user: User, proposalId: string) {
+        this.logger.log('Sending proposalId (' + proposalId + ') to: ' + user.email);
+        await this.mailserService.sendMail({
+            to: user.email,
+            subject: '[Doxee] Invitation code - Proposal ID',
+            html: this.proposalIdTemplate
+                .replace('<%= locals.name %>', user.name)
+                .replace('<%= locals.proposalId %>', proposalId),
         });
     }
 }

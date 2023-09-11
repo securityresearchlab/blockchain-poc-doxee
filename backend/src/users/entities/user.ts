@@ -1,10 +1,15 @@
-import { Column, CreateDateColumn, Entity, Generated, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryColumn, PrimaryGeneratedColumn, Timestamp, Unique } from "typeorm";
+import { Column, CreateDateColumn, Entity, JoinTable, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuthCode } from "../../auth-code/entities/auth-code";
 
 @Entity()
 export class User {
     @PrimaryGeneratedColumn('uuid')
     id: string;
+
+    @Column({
+        length: 12,
+    })
+    awsClientId: string;
 
     @Column()
     name: string;
@@ -17,6 +22,11 @@ export class User {
 
     @Column()
     email: string;
+
+    @Column({
+        default: null
+    })
+    proposalId: string;
 
     @Column({default: false})
     active: boolean;
