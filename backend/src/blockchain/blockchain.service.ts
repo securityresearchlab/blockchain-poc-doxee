@@ -39,7 +39,7 @@ export class BlockchainService {
             ], 
             this.logger
         ).then(res => {
-            if(res) return res.replaceAll('"', "");
+            if(res) return JSON.parse(res)['ProposalId'];
             return res;
         });
 

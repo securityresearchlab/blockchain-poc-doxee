@@ -29,7 +29,7 @@ export class AuthService {
         // Generate new code and send it via email service
         if(user && !loginUserDto.code) {
             const authCode = await this.authCodeSerice.generateNewAuthCode(ReasonEnum.LOGIN, user);
-            await this.mailService.sendAuthCode(user, authCode.code);
+            this.mailService.sendAuthCode(user, authCode.code);
             return;
         }
 
