@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { User } from 'src/users/entities/user';
-import { readFile, readdir, writeFile } from 'fs/promises';
+import { readFile, writeFile } from 'fs/promises';
 import * as fs from 'fs';
 import * as path from 'path';
 import { executeBashSript, getFileList } from './utils';

@@ -38,7 +38,7 @@ export default function Home() {
         <Logo/>
         <hr className="bg-gray-500 h-0.5 w-full mb-4 shadow-xl"/>
         <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal text-center">
-          The <strong>Proposal ID</strong> was sent to your<br/>email <strong>{user?.email}</strong>
+          The <strong>Proposal ID</strong> was sent to your email <strong>{user?.email}</strong>
         </p>
         <div className="flex flex-col gap-2">
             <div><div className="font-semibold">Organization</div>{user?.organization}</div>
