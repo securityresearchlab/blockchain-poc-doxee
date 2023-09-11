@@ -35,7 +35,9 @@ export class AuthService {
 
         // Verify user and code
         if(user && loginUserDto.code) {
-            const verify = await this.usersService.verifyCodeAndActivateUser(user, loginUserDto.code);
+            // If user is already active then validate just the auth code. Otherwise the activation of the user will be performed
+            const verify = user.active ? await this.usersService.verifyCode(user, loginUserDto.code) :
+                await this.usersService.verifyCodeAndActivateUser(user, loginUserDto.code);
 
             if (verify) {
                 // Generate Access Token

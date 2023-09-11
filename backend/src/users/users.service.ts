@@ -92,4 +92,22 @@ export class UsersService {
             }
         )
     }
+
+    /**
+     * Given an existing user and an auth code it invalidate used code and activate user.
+     * In this method if user is not active yet a new organization will be registered in the network.
+     * @param user 
+     * @param authCode 
+     * @returns 
+     */
+    async verifyCode(user: User, authCode: string): Promise<any> {
+        return await this.usersRepository.manager.transaction(
+            async (transactionManger) => {
+                const verify = await this.authCodeService.verifyCode(user, authCode);
+                if (verify?.length > 0) 
+                    return await transactionManger.update(AuthCode, {user: user}, {used: true});
+                throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
+            }
+        )
+    }
 }

@@ -11,7 +11,7 @@ if [[ $# -lt 3 ]] ; then
 fi
 
 echo "{
-    \"ProposalId\": \"p-4MHLH74DFJBKFK7A2I6OVUSNQI\"
+    \"ProposalId\": \"p-8MHLH74DFJBKFK7A2I6OVUSNQI\"
 }"
 
 # aws managedblockchain create-proposal \

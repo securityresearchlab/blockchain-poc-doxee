@@ -47,7 +47,7 @@ export class BlockchainService {
 
         // Send proposalId to client Email
         if (proposalId) {
-            await this.mailService.sendProposalId(user, proposalId);
+            this.mailService.sendProposalId(user, proposalId);
             return proposalId
         }
 
