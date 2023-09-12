@@ -1,4 +1,5 @@
 export const configuration = () => ({
+    APP_MODE: process.env.APP_MODE,
     NODE_ENV: process.env.NODE_ENV,
     URL: process.env.URL ?? "http://localhost:8888",
     PORT: parseInt(process.env.PORT ?? "8888", 10),

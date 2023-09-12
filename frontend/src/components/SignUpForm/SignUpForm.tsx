@@ -9,7 +9,11 @@ import Logo from "../Logo/Logo";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
 import TextField from "../TextField/TextField";
 
-export default function SignUpForm() {
+interface Props {
+    mode: "INVITATION" | "CLIENT";
+}
+
+export default function SignUpForm({...props}: Props) {
     const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
     const router = useRouter();

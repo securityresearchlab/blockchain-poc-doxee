@@ -9,20 +9,22 @@ import { executeBashSript } from './utils';
 export class BlockchainService {
     private readonly logger = new Logger(BlockchainService.name);
 
+    private readonly SCRIPTS_PATH = path.join(process.cwd(), 'src', 'blockchain', 'scripts');
+
     constructor(
         private configService: ConfigService, 
         private mailService: MailService
     ) {}
 
     /**
-     * Generates all files needed to create a new organization, invokes scripts and creates a wallet
+     * Generates invitation for Doxee blockchain
      * @param user 
      * @returns 
      */
     async enrollOrg(user: User): Promise<string> {
         this.logger.log('Start enrolling organization: ' + user.organization);
 
-        const awsGenerateInvitationScriptPath = path.join(process.cwd(), 'src', 'blockchain', 'scripts', 'awsGenerateInvitation.sh');
+        const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
         const proposalId: string = await executeBashSript(
             awsGenerateInvitationScriptPath, 
             [
@@ -45,6 +47,33 @@ export class BlockchainService {
         }
 
         throw new HttpException('Error during Org initialization', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    /**
+     * Generates Aws infrastructure inside client netowrk
+     * @param user 
+     */
+    async generateAwsInfrastructure(user: User) {
+        this.logger.log(`Start generating AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposalId}`);
+        
+        const awsAcceptInvitationAndCreateMemberScriptPath = path.join(this.SCRIPTS_PATH, 'awsAcceptInvitationAndCreateMember.sh');
+        const memebrId: string = await executeBashSript(
+            awsAcceptInvitationAndCreateMemberScriptPath, 
+            [
+                this.configService.get('AWS_NETWORK_ID'),
+                user.proposalId,
+                user.organization,
+                `${user.organization} DOXEE organization`,
+                user.name + user.surname,
+                user.password,
+            ], 
+            this.logger
+        ).then(res => {
+            if(res) return JSON.parse(res)['MemberId'];
+            return res;
+        });
+        
+        this.logger.log(`Successfully generated AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposalId}`);
     }
 
 }

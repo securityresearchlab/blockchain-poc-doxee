@@ -1,6 +1,8 @@
 import * as Joi from "joi";
 
 export const validationSchema = Joi.object({
+    // APP_MODE must correspond to AppModeEnum
+    APP_MODE: Joi.string().valid("INVITATION", "CLIENT"),
     NODE_ENV: Joi.string().valid("development", "test", "production"),
     URL: Joi.string().required(),
     PORT: Joi.number().default(8888),
