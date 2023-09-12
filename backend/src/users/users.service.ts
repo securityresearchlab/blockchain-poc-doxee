@@ -1,13 +1,13 @@
-import { HttpCode, HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { User } from './entities/user';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { AuthCodeService } from 'src/auth-code/auth-code.service';
+import { AuthCode } from 'src/auth-code/entities/auth-code';
+import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
+import { BlockchainService } from 'src/blockchain/blockchain.service';
+import { MailService } from 'src/mail/mail.service';
 import { Repository } from 'typeorm';
 import { SignUpUserDto } from './dto/signup-user-dto';
-import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
-import { AuthCode } from 'src/auth-code/entities/auth-code';
-import { MailService } from 'src/mail/mail.service';
-import { AuthCodeService } from 'src/auth-code/auth-code.service';
-import { BlockchainService } from 'src/blockchain/blockchain.service';
+import { User } from './entities/user';
 
 @Injectable()
 export class UsersService {

@@ -1,14 +1,13 @@
 'use client';
 
+import { AuthService, SignUpUserDto } from "@/openapi";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Button from "../Button/Button";
 import Container from "../Container/Container";
 import Logo from "../Logo/Logo";
-import TextField from "../TextField/TextField";
-import Button from "../Button/Button";
-import { useRouter } from "next/navigation";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
-import sleep from "@/utils/functionUtilities";
-import { AuthService, SignUpUserDto } from "@/openapi";
+import TextField from "../TextField/TextField";
 
 export default function SignUpForm() {
     const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;

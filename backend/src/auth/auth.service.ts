@@ -1,6 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { single } from 'rxjs';
 import { AuthCodeService } from 'src/auth-code/auth-code.service';
 import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
 import { MailService } from 'src/mail/mail.service';

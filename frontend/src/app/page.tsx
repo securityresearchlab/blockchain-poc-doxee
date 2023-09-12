@@ -3,13 +3,11 @@
 import Button from "@/components/Button/Button";
 import Container from "@/components/Container/Container";
 import Logo from "@/components/Logo/Logo";
-import FileCardContainer from "@/components/FileCard/FileCardContainer";
-import { FILES } from "@/model/chainFile";
 import { User } from "@/model/user";
+import { OpenAPI, UsersService } from "@/openapi";
+import { JwtUtilities } from "@/utils/jwtUtilities";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { JwtUtilities } from "@/utils/jwtUtilities";
-import { OpenAPI, UsersService } from "@/openapi";
 
 export default function Home() {
   const router = useRouter();
