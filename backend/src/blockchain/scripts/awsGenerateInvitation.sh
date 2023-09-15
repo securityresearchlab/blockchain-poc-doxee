@@ -10,11 +10,14 @@ if [[ $# -lt 3 ]] ; then
     exit 0
 fi
 
-echo "{
-    \"ProposalId\": \"p-AFHKEZXKF5GSXKFDR7UJC72YRI\"
-}"
+# Local testing purposes
+# echo "{
+#     \"ProposalId\": \"p-AFHKEZXKF5GSXKFDR7UJC72YRI\"
+# }"
 
-# aws managedblockchain create-proposal \
-# --actions Invitations=[{Principal=$1}] \
-# --network-id $2 \
-# --member-id $3
+ssh -i ./certs/blockchain_poc.pem centos@10.228.63.11 \
+aws managedblockchain create-proposal \
+--actions Invitations=[{Principal=$1}] \
+--network-id $2 \
+--member-id $3; \
+exit;
