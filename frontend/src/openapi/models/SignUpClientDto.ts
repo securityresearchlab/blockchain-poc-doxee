@@ -3,9 +3,12 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type LoginUserDto = {
+export type SignUpClientDto = {
+    name: string;
+    surname: string;
+    organization: string;
     email: string;
+    proposalId: string;
     password: string;
-    code?: string;
 };
 

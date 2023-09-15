@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, JoinTable, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { AuthCode } from "../../auth-code/entities/auth-code";
+import { Proposal } from "src/blockchain/entities/proposal";
+import { Invitation } from "src/blockchain/entities/invitation";
 
 @Entity()
 export class User {
@@ -22,9 +24,6 @@ export class User {
     email: string;
 
     @Column({default: null})
-    proposalId: string;
-
-    @Column({default: null})
     memberId: string;
 
     @Column({default: false})
@@ -33,10 +32,18 @@ export class User {
     @CreateDateColumn()
     createDate: Date;
 
-    @Column({default: null})
+    @Column()
     password: string;
 
     @OneToMany(type => AuthCode, authCode => authCode.user)
     @JoinTable()
     authCodes: Array<AuthCode>;
+
+    @OneToMany(type => Proposal, proposal => proposal.user)
+    @JoinTable()
+    proposals: Array<Proposal>;
+
+    @OneToMany(type => Invitation, invitation => invitation.user)
+    @JoinTable()
+    invitations: Array<Invitation>;
 }

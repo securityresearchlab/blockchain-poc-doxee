@@ -8,6 +8,7 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { LoginUserDto } from './models/LoginUserDto';
+export type { SignUpClientDto } from './models/SignUpClientDto';
 export type { SignUpUserDto } from './models/SignUpUserDto';
 
 export { AuthService } from './services/AuthService';

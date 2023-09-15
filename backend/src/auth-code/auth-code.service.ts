@@ -1,6 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user';
+import { UsersRepositoryService } from 'src/users/users.repository.service';
 import { Repository } from 'typeorm';
 import { AuthCode } from './entities/auth-code';
 import { ReasonEnum } from './entities/reason-enum';
@@ -13,8 +14,7 @@ export class AuthCodeService {
     constructor(
         @InjectRepository(AuthCode)
         private authCodeRepository: Repository<AuthCode>,
-        @InjectRepository(User)
-        private userRepository: Repository<User>,
+        private usersRepositoryService: UsersRepositoryService,
     ) {}
 
     /**
@@ -41,7 +41,7 @@ export class AuthCodeService {
             .innerJoin('authCode.user', 'user')
             .where('user.id=:id', {id: user.id})
             .andWhere('authCode.code=:code', {code: authCode})
-            .andWhere('authCode.expireDate>:date', {date: new Date()})
+            .andWhere('authCode.expirationDate>:date', {date: new Date()})
             .andWhere('authCode.used=false')
             .getMany();
         
@@ -59,10 +59,6 @@ export class AuthCodeService {
     }
 
     async findValidAuthCodeByUser(): Promise<User[]> {
-        return this.userRepository.find({
-            relations: {
-                authCodes: true,
-            },
-        });
+        return await this.usersRepositoryService.findAll();
     }
 }

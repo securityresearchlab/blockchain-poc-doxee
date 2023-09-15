@@ -16,7 +16,7 @@ export class AuthService {
      * @returns any User authenticated successfully.
      * @throws ApiError
      */
-    public static authControllerSignIn(
+    public static authControllerLogin(
         requestBody: LoginUserDto,
     ): CancelablePromise<any> {
         return __request(OpenAPI, {
@@ -41,6 +41,25 @@ export class AuthService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v0/secure/auth/signUp',
+            body: requestBody,
+            mediaType: 'application/json',
+            errors: {
+                500: `Error during registration process.`,
+            },
+        });
+    }
+
+    /**
+     * @param requestBody
+     * @returns any User created successfully.
+     * @throws ApiError
+     */
+    public static authControllerSignUpClient(
+        requestBody: SignUpUserDto,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v0/secure/auth/signUpClient',
             body: requestBody,
             mediaType: 'application/json',
             errors: {

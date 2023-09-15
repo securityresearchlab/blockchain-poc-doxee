@@ -17,4 +17,10 @@ export class UsersController {
     async getUser(@Param('email') email: string) {
         return await this.usersService.findOne(email);
     }
+
+    @Get("generateNewProposal/:email")
+    @UseGuards(JwtAuthGuard)
+    async generateNewProposal(@Param("email") email: string) {
+        return await this.usersService.generateNewProposal(email);
+    }
 }

@@ -19,23 +19,33 @@ export class MailService {
 
     async sendAuthCode(user: User, authCode: string) {
         this.logger.log('Sending authcode (' + authCode + ') to: ' + user.email);
-        await this.mailserService.sendMail({
-            to: user.email,
-            subject: '[Doxee] Authentication Code',
-            html: this.authCodeTemplate
-                .replace('<%= locals.name %>', user.name)
-                .replace('<%= locals.authcode %>', authCode),
-        });
+        try {
+            await this.mailserService.sendMail({
+                to: user.email,
+                subject: '[Doxee] Authentication Code',
+                html: this.authCodeTemplate
+                    .replace('<%= locals.name %>', user.name)
+                    .replace('<%= locals.authcode %>', authCode),
+            });
+        } catch (error) {
+            this.logger.warn(`Error during sendAuthCode to ${user.email}`);
+            this.logger.warn(`${JSON.stringify(error)}`);
+        }
     }
 
     async sendProposalId(user: User, proposalId: string) {
         this.logger.log('Sending proposalId (' + proposalId + ') to: ' + user.email);
-        await this.mailserService.sendMail({
-            to: user.email,
-            subject: '[Doxee] Invitation code - Proposal ID',
-            html: this.proposalIdTemplate
-                .replace('<%= locals.name %>', user.name)
-                .replace('<%= locals.proposalId %>', proposalId),
-        });
+        try {
+            await this.mailserService.sendMail({
+                to: user.email,
+                subject: '[Doxee] Invitation code - Proposal ID',
+                html: this.proposalIdTemplate
+                    .replace('<%= locals.name %>', user.name)
+                    .replace('<%= locals.proposalId %>', proposalId),
+            });
+        } catch (error) {
+            this.logger.warn(`Error during sendProposalId to ${user.email}`);
+            this.logger.warn(`${JSON.stringify(error)}`);
+        }
     }
 }

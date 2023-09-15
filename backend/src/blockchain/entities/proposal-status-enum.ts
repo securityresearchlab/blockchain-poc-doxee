@@ -1,0 +1,7 @@
+export enum ProposalStatusEnum {
+   IN_PROGRESS = "IN_PROGRESS",
+   APPROVED = "APPROVED",
+   REJECTED = "REJECTED",
+   EXPIRED = "EXPIRED",
+   ACTION_FAILED = "ACTION_FAILED",
+}

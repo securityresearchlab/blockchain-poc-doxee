@@ -1,4 +1,4 @@
-export declare enum AppModeEnum {
+export enum AppModeEnum {
     INVITATION = "INVITATION",
     CLIENT = "CLIENT",
 }

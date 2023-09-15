@@ -25,7 +25,7 @@ export class AuthController {
     @ApiResponse({status: HttpStatus.UNAUTHORIZED, description: 'Credentials are invalid.'})
     login(@Body() loginUserDto: LoginUserDto) {
         try {
-            return this.authService.signIn(loginUserDto);
+            return this.authService.logIn(loginUserDto);
         } catch (error) {
             return error;
         }

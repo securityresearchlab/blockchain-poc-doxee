@@ -1,6 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinColumn, JoinTable, ManyToMany, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
-import { ReasonEnum } from "./reason-enum";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
 import { User } from "../../users/entities/user";
+import { ReasonEnum } from "./reason-enum";
 
 @Entity()
 export class AuthCode {
@@ -18,18 +18,18 @@ export class AuthCode {
     code: string;
 
     @CreateDateColumn()
-    createdAt: Date;
+    creationDate: Date;
 
     @Column()
-    expireDate: Date;
+    expirationDate: Date;
 
     @Column({default: false})
     used: boolean;
 
     constructor(reason: ReasonEnum) {
         this.reason = reason;
-        this.createdAt = new Date();
-        this.expireDate = new Date();
-        this.expireDate.setHours(this.expireDate.getHours() + 8);
+        this.creationDate = new Date();
+        this.expirationDate = new Date();
+        this.expirationDate.setHours(this.expirationDate.getHours() + 8);
     }
 }

@@ -1,7 +1,8 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { AuthCodeService } from 'src/auth-code/auth-code.service';
 import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
+import { isMatch } from 'src/auth-code/utils/crypt-and-decrypt';
 import { MailService } from 'src/mail/mail.service';
 import { LoginUserDto } from 'src/users/dto/login-user-dto';
 import { UsersService } from 'src/users/users.service';
@@ -17,13 +18,17 @@ export class AuthService {
         private jwtService: JwtService
     ) {}
 
-    async signIn(loginUserDto: LoginUserDto): Promise<any> {
+    async logIn(loginUserDto: LoginUserDto): Promise<any> {
         const user = await this.usersService.findOne(loginUserDto.email);
 
         // If user doesn't exists return OK, 
         // we don't want to give any information about our registered users.
         // A mail with authentication code will not be sent.
         if(!user) return;
+
+        if(!isMatch(loginUserDto.password, user.password)) {
+            throw new HttpException('Invalid credentials', HttpStatus.FORBIDDEN);
+        }
 
         // Generate new code and send it via email service
         if(user && !loginUserDto.code) {

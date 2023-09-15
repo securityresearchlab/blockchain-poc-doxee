@@ -1,17 +1,19 @@
-export class User {
-    name?: string;
-    surname?: string;
-    organization?: string;
-    awsClientId?: string;
-    proposalId?: string;
-    email?: string;
+import { Proposal } from "./proposal";
 
-    constructor(name: string, surname: string, organization: string, awsClientId: string, proposalId: string, email: string) {
+export class User {
+    name: string;
+    surname: string;
+    organization: string;
+    awsClientId: string;
+    email: string;
+    proposals?: Array<Proposal>;
+
+    constructor(name: string, surname: string, organization: string, awsClientId: string, email: string, proposals: Array<Proposal>) {
         this.name = name;
         this.surname = surname;
         this.organization = organization;
         this.awsClientId = awsClientId;
-        this.proposalId = proposalId;
         this.email = email;
+        this.proposals = proposals;
     }
 }

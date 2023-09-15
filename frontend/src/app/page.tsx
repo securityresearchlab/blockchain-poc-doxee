@@ -3,6 +3,7 @@
 import Button from "@/components/Button/Button";
 import Container from "@/components/Container/Container";
 import Logo from "@/components/Logo/Logo";
+import { Proposal } from "@/model/proposal";
 import { User } from "@/model/user";
 import { OpenAPI, UsersService } from "@/openapi";
 import { JwtUtilities } from "@/utils/jwtUtilities";
@@ -13,6 +14,7 @@ export default function Home() {
   const router = useRouter();
 
   const [user, setUser] = useState<User>();
+  const [proposal, setProposal] = useState<Proposal>();
 
   useEffect(() => {
     const jwtToken: string | null = localStorage.getItem('X-AUTH-TOKEN');
@@ -22,9 +24,17 @@ export default function Home() {
     if(jwtToken) {
       OpenAPI.TOKEN = localStorage.getItem("X-AUTH-TOKEN")!;
       UsersService.usersControllerGetUser(JwtUtilities.getEmail(jwtToken))
-        .then(res => { setUser(res); })
+        .then((res: User) => { 
+          setUser(res);
+          setProposal(res?.proposals?.sort((a, b) => a.creationDate > b.creationDate ? 1 : 0).at(0));
+        });
     }
   }, []);
+
+  function handleRequestNewInvitation() {
+    if(user?.email) 
+      UsersService.usersControllerGenerateNewProposal(user.email).then(res => setProposal(res));
+  }
 
   function handleLogout() {
     localStorage.removeItem('X-AUTH-TOKEN');
@@ -41,9 +51,13 @@ export default function Home() {
         <div className="flex flex-col gap-2">
             <div><div className="font-semibold">Organization</div>{user?.organization}</div>
             <div><div className="font-semibold">Aws Client ID</div>{user?.awsClientId}</div>
-            <div><div className="font-semibold">Proposal ID</div>{user?.proposalId}</div>
+            <div><div className="font-semibold">Proposal ID</div>{proposal?.proposalId}</div>
+            <div><div className="font-semibold">Status</div>{proposal?.status}</div>
         </div>
         <div className="w-full mt-8">
+          {(proposal?.status != "APPROVED" && proposal?.status != "IN_PROGRESS") &&
+            <Button text="Request new invitation" onClick={handleRequestNewInvitation} style="primary"></Button>
+          }
           <Button text="Logout" onClick={handleLogout} style="secondary"></Button>
         </div>
     </Container>

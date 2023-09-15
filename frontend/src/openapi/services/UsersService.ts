@@ -25,4 +25,21 @@ export class UsersService {
         });
     }
 
+    /**
+     * @param email
+     * @returns any
+     * @throws ApiError
+     */
+    public static usersControllerGenerateNewProposal(
+        email: string,
+    ): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v0/secure/users/generateNewProposal/{email}',
+            path: {
+                'email': email,
+            },
+        });
+    }
+
 }

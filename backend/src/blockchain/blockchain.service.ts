@@ -4,6 +4,7 @@ import * as path from 'path';
 import { MailService } from 'src/mail/mail.service';
 import { User } from 'src/users/entities/user';
 import { executeBashSript } from './utils';
+import { Proposal } from './entities/proposal';
 
 @Injectable()
 export class BlockchainService {
@@ -21,7 +22,7 @@ export class BlockchainService {
      * @param user 
      * @returns 
      */
-    async enrollOrg(user: User): Promise<string> {
+    async generateProposal(user: User): Promise<string> {
         this.logger.log('Start enrolling organization: ' + user.organization);
 
         const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
@@ -49,19 +50,35 @@ export class BlockchainService {
         throw new HttpException('Error during Org initialization', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    async getProposalById(proposalId: string): Promise<Proposal> {
+        this.logger.log(`Get proposalId ${proposalId}`);
+        const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
+        return await executeBashSript(
+            awsListProposalsScriptPath, 
+            [this.configService.get("AWS_NETWORK_ID")],
+            this.logger)
+            .then(response => {
+                const objResponse: Array<any> = JSON.parse(response)["Proposals"];
+                const proposalObj = objResponse.filter(el => el.ProposalId == proposalId).at(0);
+                const proposal = new Proposal(proposalObj);
+                this.logger.log(JSON.stringify(proposal));
+                return proposal;
+            });
+    }
+
     /**
      * Generates Aws infrastructure inside client netowrk
      * @param user 
      */
     async generateAwsInfrastructure(user: User) {
-        this.logger.log(`Start generating AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposalId}`);
+        this.logger.log(`Start generating AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
         
         const awsAcceptInvitationAndCreateMemberScriptPath = path.join(this.SCRIPTS_PATH, 'awsAcceptInvitationAndCreateMember.sh');
         const memebrId: string = await executeBashSript(
             awsAcceptInvitationAndCreateMemberScriptPath, 
             [
                 this.configService.get('AWS_NETWORK_ID'),
-                user.proposalId,
+                // user.proposalId,
                 user.organization,
                 `${user.organization} DOXEE organization`,
                 user.name + user.surname,
@@ -73,7 +90,7 @@ export class BlockchainService {
             return res;
         });
         
-        this.logger.log(`Successfully generated AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposalId}`);
+        this.logger.log(`Successfully generated AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
     }
 
 }

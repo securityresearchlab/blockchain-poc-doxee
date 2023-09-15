@@ -11,6 +11,8 @@ import { HealthCkeckModule } from './health-ckeck/health-ckeck.module';
 import { MailModule } from './mail/mail.module';
 import { User } from './users/entities/user';
 import { UsersModule } from './users/users.module';
+import { Proposal } from './blockchain/entities/proposal';
+import { Invitation } from './blockchain/entities/invitation';
 
 @Module({
   imports: [
@@ -26,7 +28,7 @@ import { UsersModule } from './users/users.module';
       useFactory: (configService: ConfigService) => ({
         type: 'sqlite',
         database: configService.get("DB"),
-        entities: [User, AuthCode],
+        entities: [User, AuthCode, Proposal, Invitation],
         synchronize: true,
         autoLoadEntities: true,
       }),

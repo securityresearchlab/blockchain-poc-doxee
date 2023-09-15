@@ -25,6 +25,7 @@ export default function SignUpForm({...props}: Props) {
     const [organization, setOrganization] = useState<string>('');
     const [awsClientId, setAwsClientId] = useState<string>('');
     const [email, setEmail] = useState<string>('');
+    const [password, setPassword] = useState<string>('');
     const [popUpDisplay, setPopUpDisplay] = useState<boolean>(false);
     const [popUpSeverity, setPopUpSeverity] = useState<'error' | 'warning' | 'success' | 'info'>('info');
     const [popUpMessage, setPopUpMessage] = useState<string>('');
@@ -48,6 +49,7 @@ export default function SignUpForm({...props}: Props) {
                 organization: organization,
                 awsClientId: awsClientId,
                 email: email,
+                password: password,
             };
             AuthService.authControllerSignUp(signUpUserDto)
                 .then((res) => {
@@ -66,8 +68,9 @@ export default function SignUpForm({...props}: Props) {
 
     async function handleVerify() {
         setPopUpDisplay(false);
-        AuthService.authControllerSignIn({
+        AuthService.authControllerLogin({
             email: email,
+            password: password,
             code: code,
         }).then((res) => {
             localStorage.setItem('X-AUTH-TOKEN', res['access_token']);
@@ -88,6 +91,7 @@ export default function SignUpForm({...props}: Props) {
                 organization: organization,
                 awsClientId: awsClientId,
                 email: email,
+                password: password,
             };
             AuthService.authControllerSignUp(signUpUserDto)
                 .then((res) => {
@@ -115,13 +119,14 @@ export default function SignUpForm({...props}: Props) {
                 <hr className="bg-gray-500 h-0.5 w-full mb-4 shadow-xl"/>
                 {!verify && 
                      <form id="singUpForm">
-                        <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Insert data of your organization to complete the sign up</p>
+                        <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Insert data of your organization to subscribe Doxee blockchain network</p>
                         <div className="flex flex-col gap-2 w-full">
                                 <TextField label="Name" onChange={setName} required={true}></TextField>
                                 <TextField label="Surname" onChange={setSurname} required={true}></TextField>
                                 <TextField label="Organization" onChange={setOrganization} required={true}></TextField>
                                 <TextField label="Aws Client ID" onChange={setAwsClientId} required={true}></TextField>
                                 <TextField label="Email" onChange={setEmail} required={true}></TextField>
+                                <TextField label="Password" onChange={setPassword} required={true} password={true}></TextField>
                         </div>
                         <div className="flex flex-col gap-2 w-full mt-8">
                             <Button text="sign up" onClick={handleRegister} style="primary"/>
