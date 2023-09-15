@@ -22,4 +22,11 @@ export class Invitation {
     @ManyToOne(type => User, user => user.email)
     @JoinTable()
     user: User;
+
+    constructor(invitationAwsObj: any) {
+        this.invitationId = invitationAwsObj?.["InvitationId"];
+        this.creationDate = new Date(invitationAwsObj?.["CreationDate"]);
+        this.expirationDate = new Date(invitationAwsObj?.["ExpirationDate"]);
+        this.status = InvitationStatusEnum[invitationAwsObj?.["Status"]];
+    }
 }

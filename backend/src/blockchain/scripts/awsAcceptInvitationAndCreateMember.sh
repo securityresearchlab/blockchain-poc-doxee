@@ -5,7 +5,7 @@ function printHelp() {
     echo "  awsAcceptInvitationAndCreateMember.sh <network id> <invitation id> <organization name> <description> <admin username> <admin password>"
 }
 
-if [[ $# -lt 3 ]] ; then
+if [[ $# -lt 6 ]] ; then
     printHelp > /dev/null
     exit 0
 fi

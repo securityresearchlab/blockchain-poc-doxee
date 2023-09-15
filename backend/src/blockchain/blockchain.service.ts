@@ -5,6 +5,7 @@ import { MailService } from 'src/mail/mail.service';
 import { User } from 'src/users/entities/user';
 import { executeBashSript } from './utils';
 import { Proposal } from './entities/proposal';
+import { Invitation } from './entities/invitation';
 
 @Injectable()
 export class BlockchainService {
@@ -23,7 +24,7 @@ export class BlockchainService {
      * @returns 
      */
     async generateProposal(user: User): Promise<string> {
-        this.logger.log('Start enrolling organization: ' + user.organization);
+        this.logger.log(`Start enrolling organization: ${user.organization}`);
 
         const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
         const proposalId: string = await executeBashSript(
@@ -50,6 +51,11 @@ export class BlockchainService {
         throw new HttpException('Error during Org initialization', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
+    /**
+     * Retrieve proposal by ProposalId from doxee network
+     * @param proposalId 
+     * @returns 
+     */
     async getProposalById(proposalId: string): Promise<Proposal> {
         this.logger.log(`Get proposalId ${proposalId}`);
         const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
@@ -61,8 +67,22 @@ export class BlockchainService {
                 const objResponse: Array<any> = JSON.parse(response)["Proposals"];
                 const proposalObj = objResponse.filter(el => el.ProposalId == proposalId).at(0);
                 const proposal = new Proposal(proposalObj);
-                this.logger.log(JSON.stringify(proposal));
                 return proposal;
+            });
+    }
+
+    async getAllInvitations(): Promise<Array<Invitation>> {
+        this.logger.log(`Start retrieving invitation list for AWS account ${this.configService.get('AWS_ACCOUNT_ID')}`);
+        
+        const awsListInvitationsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListInvitations.sh');
+        return await executeBashSript(awsListInvitationsScriptPath, [], this.logger)
+            .then(response => {
+                const objResponse: Array<any> = JSON.parse(response)["Invitations"];
+                let invitations: Array<Invitation> = new Array();
+                objResponse.forEach(el => {
+                    invitations.push(new Invitation(el));
+                })
+                return invitations;
             });
     }
 

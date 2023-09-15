@@ -13,6 +13,7 @@ import { User } from './entities/user';
 import { UsersRepositoryService } from './users.repository.service';
 import { Proposal } from 'src/blockchain/entities/proposal';
 import { ProposalStatusEnum } from 'src/blockchain/entities/proposal-status-enum';
+import { Invitation } from 'src/blockchain/entities/invitation';
 
 @Injectable()
 export class UsersService {
@@ -85,11 +86,17 @@ export class UsersService {
         return await this.save(user);
     }
 
+    /**
+     * Entry point to validate and activate user in INVITATION or CLIENT mode
+     * @param user 
+     * @param authCode 
+     * @returns 
+     */
     async verifyCodeAndActivate(user: User, authCode: string) {
         this.logger.log("APP_MODE : " + this.configService.get('APP_MODE'));
         return await this.configService.get('APP_MODE') == AppModeEnum.INVITATION ?
             this.verifyCodeAndActivateUser(user, authCode) :
-            this.verifyCodeAndGenerateAwsInfrastructure(user, authCode);
+            this.verifyCodeAndActivateClientUser(user, authCode);
     }
 
     /**
@@ -116,20 +123,20 @@ export class UsersService {
     }
 
     /**
-     * Given an existing user and an auth code if the user is inactive a new member will be registered
-     * inside AWS blockchain network
+     * Given an existing user and an auth code if the user is inactive it will be activated 
+     * and invitations are loaded
      * @param user 
      * @param authCode 
      * @returns 
      */
-    private async verifyCodeAndGenerateAwsInfrastructure(user: User, authCode: string) {
+    private async verifyCodeAndActivateClientUser(user: User, authCode: string) {
         return await this.usersRepositoryService.getManager().transaction(
             async (transactionManger) => {
                 const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) {
-                    await this.blockchainService.generateAwsInfrastructure(user);
                     await transactionManger.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
+                    user.invitations = await transactionManger.save(await this.blockchainService.getAllInvitations());
                     return await transactionManger.save(user);
                 } 
                 throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
@@ -144,7 +151,8 @@ export class UsersService {
     async generateNewProposal(email: string) {
         this.logger.log(`Start generating new proposal for ${email}`);
         let user: User = await this.findOne(email); 
-        if(user.proposals.filter(proposal => proposal.status == ProposalStatusEnum.APPROVED).length > 0)
+        if(user.proposals.filter(proposal => 
+            proposal.status == ProposalStatusEnum.APPROVED || proposal.status == ProposalStatusEnum.IN_PROGRESS).length > 0)
             throw new HttpException('Unable to generate new Proposal', HttpStatus.FORBIDDEN);
 
         const proposalId = await this.blockchainService.generateProposal(user);
