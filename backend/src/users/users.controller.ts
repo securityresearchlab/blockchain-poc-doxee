@@ -1,7 +1,11 @@
 import { Controller, Get, Logger, Param, UseGuards } from '@nestjs/common';
-import { UsersService } from './users.service';
+import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
-import { ApiTags } from '@nestjs/swagger';
+import { Proposal } from 'src/blockchain/entities/proposal';
+import { ProposalDto } from './dto/proposal-dto';
+import { UserDto } from './dto/user-dto';
+import { User } from './entities/user';
+import { UsersService } from './users.service';
 
 @ApiTags("users")
 @Controller('/api/v0/secure/users')
@@ -14,13 +18,15 @@ export class UsersController {
 
     @Get(":email")
     @UseGuards(JwtAuthGuard)
-    async getUser(@Param('email') email: string) {
+    @ApiResponse({type: UserDto})
+    async getUser(@Param('email') email: string): Promise<User> {
         return await this.usersService.findOne(email);
     }
 
     @Get("generateNewProposal/:email")
     @UseGuards(JwtAuthGuard)
-    async generateNewProposal(@Param("email") email: string) {
+    @ApiResponse({type: ProposalDto})
+    async generateNewProposal(@Param("email") email: string): Promise<Proposal> {
         return await this.usersService.generateNewProposal(email);
     }
 }

@@ -30,7 +30,7 @@ export class BlockchainService {
         const proposalId: string = await executeBashSript(
             awsGenerateInvitationScriptPath, 
             [
-                this.configService.get('AWS_ACCOUNT_ID'),
+                user.awsClientId,
                 this.configService.get('AWS_NETWORK_ID'),
                 this.configService.get('AWS_MEMBER_ID'),
             ], 
@@ -71,6 +71,10 @@ export class BlockchainService {
             });
     }
 
+    /**
+     * Get all invitations for aws account configured
+     * @returns 
+     */
     async getAllInvitations(): Promise<Array<Invitation>> {
         this.logger.log(`Start retrieving invitation list for AWS account ${this.configService.get('AWS_ACCOUNT_ID')}`);
         

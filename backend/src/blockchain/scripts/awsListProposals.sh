@@ -52,7 +52,7 @@ fi
 #     ]
 # }"
 
-ssh -i ./certs/blockchain_poc.pem centos@10.228.63.11 \
+ssh -i ${PWD}/src/blockchain/scripts/certs/blockchain_poc.pem centos@10.228.63.11 \
 aws managedblockchain list-proposals \
 --network-id $1;\
 exit;

@@ -5,19 +5,25 @@ import Container from "@/components/Container/Container";
 import Logo from "@/components/Logo/Logo";
 import FileCardContainer from "@/components/FileCard/FileCardContainer";
 import { FILES } from "@/model/chainFile";
-import { User } from "@/model/user";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { JwtUtilities } from "@/utils/jwtUtilities";
+import { InvitationDto, ProposalDto, UserDto } from "@/openapi";
 
-const mockUser: User = new User(
-  "Alessandro", "Foglia", "org.ale.foglia", "123456789012", "p-dasdasd", "alessandro.foglia@outlook.it"
-);
+const mockUser: UserDto = {
+  name: 'Alessandro', 
+  surname: 'Foglia', 
+  email: 'alessandro.foglia@outlook.it',
+  awsClientId: '123456789012', 
+  organization: 'org.ale.foglia.com',
+  proposals: new Array<ProposalDto>,
+  invitations: new Array<InvitationDto>,
+};
 
 export default function Home() {
   const router = useRouter();
 
-  const [user, setUser] = useState<User>(mockUser);
+  const [user, setUser] = useState<UserDto>(mockUser);
 
   useEffect(() => {
     const isExpired = JwtUtilities.isExpired(localStorage.getItem('X-AUTH-TOKEN'))
