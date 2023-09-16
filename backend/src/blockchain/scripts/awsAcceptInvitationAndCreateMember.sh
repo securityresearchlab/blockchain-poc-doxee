@@ -10,15 +10,15 @@ if [[ $# -lt 6 ]] ; then
     exit 0
 fi
 
-echo "{
-    \"MemberId\": \"m-J46DNSFRTVCCLONS9DT5TTLS2A\"
-}"
+# echo "{
+#     \"MemberId\": \"m-J46DNSFRTVCCLONS9DT5TTLS2A\"
+# }"
 
-# ssh -i ${PWD}/src/blockchain/scripts/certs/blockchain_poc.pem centos@10.228.63.11 \
-# aws managedblockchain create-member \
-# --network-id $1 \
-# --invitation-id $2 \
-# --member-configuration 'Name=$3,Description=$4,\
-# FrameworkConfiguration={Fabric={AdminUsername=$5,\
-# AdminPassword=$6}}'; \
-# exit;
+ssh -i ${PWD}/src/blockchain/scripts/certs/blockchain_poc.pem centos@10.228.63.11 \
+aws managedblockchain create-member \
+--network-id $1 \
+--invitation-id $2 \
+--member-configuration 'Name=$3,Description=$4,\
+FrameworkConfiguration={Fabric={AdminUsername=$5,\
+AdminPassword=$6}}'; \
+exit;
