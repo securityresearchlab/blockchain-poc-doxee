@@ -9,11 +9,7 @@ import Logo from "../Logo/Logo";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
 import TextField from "../TextField/TextField";
 
-interface Props {
-    mode: "INVITATION" | "CLIENT";
-}
-
-export default function SignUpForm({...props}: Props) {
+export default function SignUpForm() {
     const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
     const router = useRouter();
@@ -119,7 +115,11 @@ export default function SignUpForm({...props}: Props) {
                 <hr className="bg-gray-500 h-0.5 w-full mb-4 shadow-xl"/>
                 {!verify && 
                      <form id="singUpForm">
-                        <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Insert data of your organization to subscribe Doxee blockchain network</p>
+                        <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">
+                            {process.env.APP_MODE === 'INVITATION' ? 
+                            "Insert data of your organization to subscribe Doxee blockchain network" :
+                            "Insert data of your organization to enroll a new member inside Doxee blockchain network"}
+                        </p>
                         <div className="flex flex-col gap-2 w-full">
                                 <TextField label="Name" onChange={setName} required={true}></TextField>
                                 <TextField label="Surname" onChange={setSurname} required={true}></TextField>

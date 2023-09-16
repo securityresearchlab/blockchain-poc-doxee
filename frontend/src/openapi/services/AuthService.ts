@@ -49,23 +49,4 @@ export class AuthService {
         });
     }
 
-    /**
-     * @param requestBody
-     * @returns any User created successfully.
-     * @throws ApiError
-     */
-    public static authControllerSignUpClient(
-        requestBody: SignUpUserDto,
-    ): CancelablePromise<any> {
-        return __request(OpenAPI, {
-            method: 'POST',
-            url: '/api/v0/secure/auth/signUpClient',
-            body: requestBody,
-            mediaType: 'application/json',
-            errors: {
-                500: `Error during registration process.`,
-            },
-        });
-    }
-
 }

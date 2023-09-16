@@ -69,11 +69,7 @@ export default function LoginForm() {
             password: password,
             code: code,
         }).then((res) => {
-            setPopUpMessage('Inserted code is correct');
-            setPopUpSeverity('success');
-            setPopUpDisplay(true);
             localStorage.setItem('X-AUTH-TOKEN', res['access_token']);
-            sleep(1200);
             router.push('/');
         }).catch((err) => {
             setPopUpMessage('Inserted code is not valid');

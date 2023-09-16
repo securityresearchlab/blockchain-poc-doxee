@@ -5,14 +5,13 @@ import { AuthCode } from 'src/auth-code/entities/auth-code';
 import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
 import { hash } from 'src/auth-code/utils/crypt-and-decrypt';
 import { BlockchainService } from 'src/blockchain/blockchain.service';
+import { Proposal } from 'src/blockchain/entities/proposal';
+import { ProposalStatusEnum } from 'src/blockchain/entities/proposal-status-enum';
 import { AppModeEnum } from 'src/config/app-mode-enum';
 import { MailService } from 'src/mail/mail.service';
-import { SignUpClientDto } from './dto/signup-client-dto';
 import { SignUpUserDto } from './dto/signup-user-dto';
 import { User } from './entities/user';
 import { UsersRepositoryService } from './users.repository.service';
-import { Proposal } from 'src/blockchain/entities/proposal';
-import { ProposalStatusEnum } from 'src/blockchain/entities/proposal-status-enum';
 import { Invitation } from 'src/blockchain/entities/invitation';
 
 @Injectable()
@@ -29,11 +28,9 @@ export class UsersService {
 
     async findOne(email: string): Promise<User> {
         let user = await this.usersRepositoryService.findOne(email);
-        await user?.proposals?.forEach(async proposal => {
-            proposal.status = ProposalStatusEnum[(await this.blockchainService.getProposalById(proposal.proposalId)).status];
-            await this.usersRepositoryService.getManager().update(Proposal, {user: user, proposalId: proposal.proposalId}, {status: proposal.status});
-        })
-        return user;
+        await this.updateProposals(user);
+        await this.updateInvitations(user);
+        return user; 
     }
 
     /**
@@ -59,32 +56,8 @@ export class UsersService {
         user.invitations = new Array();
         user.authCodes = new Array();
         
-        return await this.save(user);
+        return await this.saveWithNewAuthCode(user);
     } 
-
-    /**
-     * Store new user client applicattion
-     * @param singUpClientDto 
-     * @returns 
-     */
-    async saveOneClient(singUpClientDto: SignUpClientDto) {
-        const existingUser: User = await this.findOne(singUpClientDto.email);
-        let user: User = existingUser ? existingUser : new User();
-
-        // If user already exists then generate new auth code and saving a new one.
-        if (existingUser) return await this.generateNewAuthCode(existingUser, user);
-
-        // Create new user
-        user.name = singUpClientDto.name;
-        user.surname = singUpClientDto.surname;
-        user.organization = singUpClientDto.organization;
-        user.awsClientId = this.configService.get("AWS_ACCOUNT_ID")
-        user.email = singUpClientDto.email;
-        user.password = await hash(singUpClientDto.password);
-        user.authCodes = new Array();
-         
-        return await this.save(user);
-    }
 
     /**
      * Entry point to validate and activate user in INVITATION or CLIENT mode
@@ -117,7 +90,7 @@ export class UsersService {
                     user.active = true;
                     return await transactionManger.save(user);
                 } 
-                throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
+                throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
             }
         )
     }
@@ -136,10 +109,10 @@ export class UsersService {
                 if (verify?.length > 0) {
                     await transactionManger.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
-                    user.invitations = await transactionManger.save(await this.blockchainService.getAllInvitations());
+                    user.invitations = await transactionManger.save(await this.blockchainService.getAllInvitations(user));
                     return await transactionManger.save(user);
                 } 
-                throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
+                throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
             }
         )
     }
@@ -160,6 +133,20 @@ export class UsersService {
         user.proposals.push(await this.usersRepositoryService.getManager().save(proposal));
         await this.usersRepositoryService.getManager().save(user);
         return proposal;
+    }
+
+    /**
+     * Accept last invitation and creates member
+     * @param user 
+     * @returns 
+     */
+    async acceptInvitationAndCreateMember(user: User): Promise<User> {
+        this.logger.log(`Start accepting invitation for AWS client ${user.awsClientId}`);
+
+        user = await this.usersRepositoryService.findOne(user.email);
+        user.memberId = await this.blockchainService.acceptInvitationAndCreateMember(await this.findOne(user.email));
+        await this.updateInvitations(user);
+        return await this.usersRepositoryService.getManager().save(user);
     }
 
     /**
@@ -198,13 +185,46 @@ export class UsersService {
         )
     }
 
+    private async updateProposals(user: User): Promise<Array<Proposal>> {
+        user = await this.usersRepositoryService.findOne(user.email);
+        await user?.proposals?.forEach(async proposal => {
+            proposal.status = ProposalStatusEnum[(await this.blockchainService.getProposalById(proposal.proposalId)).status];
+            await this.usersRepositoryService.getManager().update(Proposal, {proposalId: proposal.proposalId}, {status: proposal.status});
+        });
+        return (await this.usersRepositoryService.findOne(user.email)).proposals;
+    }
+
+    private async updateInvitations(user: User): Promise<Array<Invitation>> {
+        user = await this.usersRepositoryService.findOne(user.email);
+        this.logger.log(`Start updating invitations for AWS Client ID ${user.awsClientId}`);
+
+        const invitations: Array<Invitation> = await this.blockchainService.getAllInvitations(user);
+        let newInvitations: Array<Invitation> = new Array();
+        return this.usersRepositoryService.getManager().transaction(
+            async (transactionManager) => {
+                invitations.forEach(async el => {
+                    if(user.invitations.filter(ui => ui.invitationId === el.invitationId).length > 0) {
+                        await transactionManager.update(Invitation, {invitationId: el.invitationId}, {status: el.status})
+                    } else {
+                        newInvitations.push(await transactionManager.save(el));
+                    }
+                });
+                if(newInvitations.length > 0) {
+                    user.invitations.push(...newInvitations);
+                    await transactionManager.save(user);
+                }
+                this.logger.log(`Updated invitations for AWS Client ID ${user.awsClientId}`);
+                return user.invitations;
+            }
+        );
+    }
 
     /**
      * Store user
      * @param user 
      * @returns 
      */
-    private async save(user: User) {
+    private async saveWithNewAuthCode(user: User) {
         return await this.usersRepositoryService.getManager().transaction(
             async (transactionEntityManger) => {
                 const savedUser = await transactionEntityManger.save(user);

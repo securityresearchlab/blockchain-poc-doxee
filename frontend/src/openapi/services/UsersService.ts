@@ -12,36 +12,35 @@ import { request as __request } from '../core/request';
 export class UsersService {
 
     /**
-     * @param email
      * @returns UserDto
      * @throws ApiError
      */
-    public static usersControllerGetUser(
-        email: string,
-    ): CancelablePromise<UserDto> {
+    public static usersControllerGetUser(): CancelablePromise<UserDto> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v0/secure/users/{email}',
-            path: {
-                'email': email,
-            },
+            url: '/api/v0/secure/users',
         });
     }
 
     /**
-     * @param email
      * @returns ProposalDto
      * @throws ApiError
      */
-    public static usersControllerGenerateNewProposal(
-        email: string,
-    ): CancelablePromise<ProposalDto> {
+    public static usersControllerGenerateNewProposal(): CancelablePromise<ProposalDto> {
         return __request(OpenAPI, {
             method: 'GET',
-            url: '/api/v0/secure/users/generateNewProposal/{email}',
-            path: {
-                'email': email,
-            },
+            url: '/api/v0/secure/users/generateNewProposal',
+        });
+    }
+
+    /**
+     * @returns UserDto
+     * @throws ApiError
+     */
+    public static usersControllerAcceptInvitation(): CancelablePromise<UserDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v0/secure/users/acceptInvitation',
         });
     }
 

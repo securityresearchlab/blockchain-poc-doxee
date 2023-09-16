@@ -27,7 +27,7 @@ import { Invitation } from './blockchain/entities/invitation';
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
         type: 'sqlite',
-        database: configService.get("DB"),
+        database: `${configService.get('DB')}${process.env.APP_MODE}`,
         entities: [User, AuthCode, Proposal, Invitation],
         synchronize: true,
         autoLoadEntities: true,

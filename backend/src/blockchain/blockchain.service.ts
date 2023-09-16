@@ -35,9 +35,9 @@ export class BlockchainService {
                 this.configService.get('AWS_MEMBER_ID'),
             ], 
             this.logger
-        ).then(res => {
-            if(res) return JSON.parse(res)['ProposalId'];
-            return res;
+        ).then(response => {
+            if(response) return JSON.parse(response)['ProposalId'];
+            return response;
         });
 
         this.logger.log("proposalId generated: " + proposalId);
@@ -75,8 +75,8 @@ export class BlockchainService {
      * Get all invitations for aws account configured
      * @returns 
      */
-    async getAllInvitations(): Promise<Array<Invitation>> {
-        this.logger.log(`Start retrieving invitation list for AWS account ${this.configService.get('AWS_ACCOUNT_ID')}`);
+    async getAllInvitations(user: User): Promise<Array<Invitation>> {
+        this.logger.log(`Start retrieving invitation list for AWS account ${user.awsClientId}`);
         
         const awsListInvitationsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListInvitations.sh');
         return await executeBashSript(awsListInvitationsScriptPath, [], this.logger)
@@ -91,30 +91,34 @@ export class BlockchainService {
     }
 
     /**
-     * Generates Aws infrastructure inside client netowrk
+     * Generates Aws member inside client netowrk
      * @param user 
      */
-    async generateAwsInfrastructure(user: User) {
+    async acceptInvitationAndCreateMember(user: User): Promise<string> {
         this.logger.log(`Start generating AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
         
+        const invitation: Invitation = user.invitations.sort((a, b) => a.creationDate > b.creationDate ? 1 : 0).at(0);
+
         const awsAcceptInvitationAndCreateMemberScriptPath = path.join(this.SCRIPTS_PATH, 'awsAcceptInvitationAndCreateMember.sh');
-        const memebrId: string = await executeBashSript(
+        return await executeBashSript(
             awsAcceptInvitationAndCreateMemberScriptPath, 
             [
                 this.configService.get('AWS_NETWORK_ID'),
-                // user.proposalId,
+                invitation.invitationId,
                 user.organization,
-                `${user.organization} DOXEE organization`,
+                user.organization,
                 user.name + user.surname,
                 user.password,
             ], 
             this.logger
-        ).then(res => {
-            if(res) return JSON.parse(res)['MemberId'];
-            return res;
+        ).then(response => {
+            if(response)  {
+                const memberId: string = JSON.parse(response)['MemberId'];
+                this.logger.log(`Successfully generated AWS Mmeber | AwsClientId ${user.awsClientId} | MemberId ${memberId}`);
+                return memberId;
+            }
         });
         
-        this.logger.log(`Successfully generated AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
     }
 
 }

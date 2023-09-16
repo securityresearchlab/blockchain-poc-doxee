@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
 import { IsArray, IsNotEmpty, Length, Matches } from "class-validator";
-import { ProposalDto } from "./proposal-dto";
 import { InvitationDto } from "./invitation-dto";
+import { ProposalDto } from "./proposal-dto";
+import { User } from "../entities/user";
 
 export class UserDto {
     @IsNotEmpty()
@@ -27,6 +28,10 @@ export class UserDto {
     @ApiProperty({example: "email@doxee.com"})
     email: string;
 
+    @IsNotEmpty()
+    @ApiProperty()
+    memberId: string;
+
     @IsArray()
     @ApiProperty({type: [ProposalDto], isArray: true})
     proposals: Array<ProposalDto>;
@@ -34,4 +39,15 @@ export class UserDto {
     @IsArray()
     @ApiProperty({type: [InvitationDto], isArray: true})
     invitations: Array<InvitationDto>;
+
+    constructor(user: User) {
+        this.name = user.name;
+        this.surname = user.surname;
+        this.organization = user.organization;
+        this.awsClientId = user.awsClientId;
+        this.email = user.email;
+        this.memberId = user.memberId;
+        this.proposals = user.proposals;
+        this.invitations = user.invitations
+    }
 }

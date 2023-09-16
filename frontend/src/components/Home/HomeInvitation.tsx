@@ -7,18 +7,14 @@ import { ProposalDto, UserDto, UsersService } from "@/openapi";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-interface Props {
-    email: string;
-}
-
-export default function HomeInvitation({...props}: Props) {
+export default function HomeInvitation() {
     const router = useRouter();
   
     const [user, setUser] = useState<UserDto>();
     const [proposal, setProposal] = useState<ProposalDto>();
   
     useEffect(() => {
-        UsersService.usersControllerGetUser(props.email)
+        UsersService.usersControllerGetUser()
             .then((res: UserDto) => { 
                 setUser(res);
                 setProposal(res?.proposals?.sort((a, b) => a.creationDate > b.creationDate ? 1 : 0).at(0));
@@ -27,7 +23,8 @@ export default function HomeInvitation({...props}: Props) {
   
     function handleRequestNewInvitation() {
       if(user?.email) 
-        UsersService.usersControllerGenerateNewProposal(user.email).then(res => setProposal(res));
+        UsersService.usersControllerGenerateNewProposal()
+          .then(res => setProposal(res));
     }
   
     function handleLogout() {

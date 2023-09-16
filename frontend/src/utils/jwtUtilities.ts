@@ -8,9 +8,4 @@ export class JwtUtilities {
     if (new Date(Number(now.substring(0, now.length - 3))) < new Date(user.exp)) return false;
     return true;
   }
-
-  static getEmail(token: string): string {
-    const user: any = jwtdecode(token);
-    return user.email;
-  }
 }

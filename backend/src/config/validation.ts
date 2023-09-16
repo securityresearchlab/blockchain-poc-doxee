@@ -12,7 +12,6 @@ export const validationSchema = Joi.object({
     MAIL_HOST: Joi.string().required(),
     SMTP_USERNAME: Joi.string().required(),
     SMTP_PASSWORD: Joi.string().required(),
-    AWS_ACCOUNT_ID: Joi.string().required(),
     AWS_NETWORK_ID: Joi.string().required(),
     AWS_MEMBER_ID: Joi.string().required(),
 })

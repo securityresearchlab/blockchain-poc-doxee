@@ -10,7 +10,6 @@ export type { OpenAPIConfig } from './core/OpenAPI';
 export { InvitationDto } from './models/InvitationDto';
 export type { LoginUserDto } from './models/LoginUserDto';
 export { ProposalDto } from './models/ProposalDto';
-export type { SignUpClientDto } from './models/SignUpClientDto';
 export type { SignUpUserDto } from './models/SignUpUserDto';
 export type { UserDto } from './models/UserDto';
 

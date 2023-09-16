@@ -11,7 +11,6 @@ export default function Home() {
   const router = useRouter();
 
   const [jwtExpired, setJwtExpired] = useState<boolean>(true);
-  const [email, setEmail] = useState<string>('');
 
   useEffect(() => {
     const jwtToken: string | null = localStorage.getItem('X-AUTH-TOKEN');
@@ -21,7 +20,6 @@ export default function Home() {
       handleLogout();
     } else {
       OpenAPI.TOKEN = jwtToken;
-      setEmail(JwtUtilities.getEmail(jwtToken))
     }
   }, []);
 
@@ -34,8 +32,8 @@ export default function Home() {
     <>
       {jwtExpired == false && (
           process.env.APP_MODE === 'INVITATION' ?
-          <HomeInvitation email={email}></HomeInvitation> : 
-          <HomeClient email={email}></HomeClient>
+          <HomeInvitation></HomeInvitation> : 
+          <HomeClient></HomeClient>
         )
       }
     </>

@@ -1,7 +1,7 @@
-import { Controller, Get, Logger, Param, UseGuards } from '@nestjs/common';
+import { Controller, Get, Logger, Post, UseGuards } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
-import { Proposal } from 'src/blockchain/entities/proposal';
+import { ReqUser } from './decorators/users.decorator';
 import { ProposalDto } from './dto/proposal-dto';
 import { UserDto } from './dto/user-dto';
 import { User } from './entities/user';
@@ -16,17 +16,24 @@ export class UsersController {
         private usersService: UsersService
     ) {}
 
-    @Get(":email")
+    @Get()
     @UseGuards(JwtAuthGuard)
     @ApiResponse({type: UserDto})
-    async getUser(@Param('email') email: string): Promise<User> {
-        return await this.usersService.findOne(email);
+    async getUser(@ReqUser() user: User): Promise<UserDto> {
+        return new UserDto(await this.usersService.findOne(user.email));
     }
 
-    @Get("generateNewProposal/:email")
+    @Get("generateNewProposal")
     @UseGuards(JwtAuthGuard)
     @ApiResponse({type: ProposalDto})
-    async generateNewProposal(@Param("email") email: string): Promise<Proposal> {
-        return await this.usersService.generateNewProposal(email);
+    async generateNewProposal(@ReqUser() user: User): Promise<ProposalDto> {
+        return new ProposalDto(await this.usersService.generateNewProposal(user.email));
+    }
+
+    @Post("acceptInvitation")
+    @UseGuards(JwtAuthGuard)
+    @ApiResponse({type: UserDto})
+    async acceptInvitation(@ReqUser() user: User): Promise<UserDto> {
+        return new UserDto(await this.usersService.acceptInvitationAndCreateMember(user));
     }
 }
