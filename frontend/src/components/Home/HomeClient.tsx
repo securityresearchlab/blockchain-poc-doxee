@@ -5,25 +5,44 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ClientInvitationAccept from "./ClientInvitationAccept";
 import FileDisplay from "./FileDisplay";
+import { useDispatch } from "react-redux";
+import { LOADER_VISIBLE } from "@/reducers/actions";
 
 export default function HomeClient() {
     const router = useRouter();
+    const dispatch = useDispatch();
 
     const [user, setUser] = useState<UserDto>();
     const [invitation, setInvitation] = useState<InvitationDto>();
 
     useEffect(() => {
+        dispatch({
+            type: LOADER_VISIBLE,
+            visible: true,
+        });
         UsersService.usersControllerGetUser()
             .then((res: UserDto) => { 
                 setUser(res);
-                setInvitation(res?.invitations?.sort((a, b) => a.creationDate > b.creationDate ? 1 : 0).at(0));
+                setInvitation(res?.invitations?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
+                dispatch({
+                    type: LOADER_VISIBLE,
+                    visible: false,
+                });
             });
     }, []);
 
     function handleAcceptInvitation() {
+        dispatch({
+            type: LOADER_VISIBLE,
+            visible: true,
+        });
         UsersService.usersControllerAcceptInvitation()
             .then((res: UserDto) => { 
                 setUser(res);
+                dispatch({
+                    type: LOADER_VISIBLE,
+                    visible: false,
+                });
             });
     }
 

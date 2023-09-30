@@ -8,11 +8,14 @@ import Container from "../Container/Container";
 import Logo from "../Logo/Logo";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
 import TextField from "../TextField/TextField";
+import { useDispatch } from "react-redux";
+import { LOADER_VISIBLE } from "@/reducers/actions";
 
 export default function SignUpForm() {
     const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
 
     const router = useRouter();
+    const dispatch = useDispatch();
 
     const [verify, setVerify] = useState<boolean>(false);
     const [code, setCode] = useState<string>('');
@@ -47,13 +50,25 @@ export default function SignUpForm() {
                 email: email,
                 password: password,
             };
+            dispatch({
+                type: LOADER_VISIBLE,
+                visible: true,
+            });
             AuthService.authControllerSignUp(signUpUserDto)
                 .then((res) => {
                     setVerify(true);
+                    dispatch({
+                        type: LOADER_VISIBLE,
+                        visible: false,
+                    });
                 }).catch((err) => {
                     setPopUpMessage("Error during signUp: " + err.message);
                     setPopUpSeverity('error');
                     setPopUpDisplay(true);
+                    dispatch({
+                        type: LOADER_VISIBLE,
+                        visible: false,
+                    });
                 });
         } else {
             setPopUpMessage("Requested fields are not completed");
@@ -63,6 +78,10 @@ export default function SignUpForm() {
     }
 
     async function handleVerify() {
+        dispatch({
+            type: LOADER_VISIBLE,
+            visible: true,
+        });
         setPopUpDisplay(false);
         AuthService.authControllerLogin({
             email: email,
@@ -71,10 +90,18 @@ export default function SignUpForm() {
         }).then((res) => {
             localStorage.setItem('X-AUTH-TOKEN', res['access_token']);
             router.push('/');
+            dispatch({
+                type: LOADER_VISIBLE,
+                visible: false,
+            });
         }).catch((err) => {
             setPopUpMessage('Inserted code is not valid');
             setPopUpSeverity('error');
             setPopUpDisplay(true);
+            dispatch({
+                type: LOADER_VISIBLE,
+                visible: false,
+            });
         });
     }
 
@@ -89,16 +116,28 @@ export default function SignUpForm() {
                 email: email,
                 password: password,
             };
+            dispatch({
+                type: LOADER_VISIBLE,
+                visible: true,
+            });
             AuthService.authControllerSignUp(signUpUserDto)
                 .then((res) => {
                     setVerify(true);
                     setPopUpMessage("A new code was sent to: " + email);
                     setPopUpSeverity('info');
                     setPopUpDisplay(true);
+                    dispatch({
+                        type: LOADER_VISIBLE,
+                        visible: false,
+                    });
                 }).catch((err) => {
                     setPopUpMessage('Error during the generation of new code.\nPlease retry later');
                     setPopUpSeverity('error');
                     setPopUpDisplay(true);
+                    dispatch({
+                        type: LOADER_VISIBLE,
+                        visible: false,
+                    });
                 });
         } else {
             setPopUpMessage("Requested fields are not completed");
@@ -121,7 +160,7 @@ export default function SignUpForm() {
                             "Insert data of your organization to enroll a new member inside Doxee blockchain network"}
                         </p>
                         <div className="flex flex-col gap-2 w-full">
-                                <TextField label="Name" onChange={setName} required={true}></TextField>
+                                <TextField label="First Name" onChange={setName} required={true}></TextField>
                                 <TextField label="Surname" onChange={setSurname} required={true}></TextField>
                                 <TextField label="Organization" onChange={setOrganization} required={true}></TextField>
                                 <TextField label="Aws Client ID" onChange={setAwsClientId} required={true}></TextField>
@@ -130,7 +169,9 @@ export default function SignUpForm() {
                         </div>
                         <div className="flex flex-col gap-2 w-full mt-8">
                             <Button text="sign up" onClick={handleRegister} style="primary"/>
-                            <Button text="login" onClick={handleLogin}/>
+                            <span className="w-full text-center hover:text-sky-600 text-sky-800 underline" onClick={handleLogin}>
+                                Do you have an account? Login
+                            </span>
                         </div>
                     </form>
                 }

@@ -1,0 +1,1 @@
+export const LOADER_VISIBLE = "@loader/LOADER_VISIBLE";

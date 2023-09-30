@@ -108,7 +108,7 @@ export class BlockchainService {
                 user.organization,
                 user.organization,
                 user.name + user.surname,
-                user.password,
+                user.id,
             ], 
             this.logger
         ).then(response => {

@@ -6,9 +6,9 @@ certs/
 /node_modules
 
 # Db
-DoxeeDev
-DoxeeTest
-DoxeeProd
+DoxeeDev*
+DoxeeTest*
+DoxeeProd*
 
 # Logs
 logs

@@ -2,10 +2,13 @@
 
 import HomeClient from "@/components/Home/HomeClient";
 import HomeInvitation from "@/components/Home/HomeInvitation";
+import Loader from "@/components/Loader/Loader";
 import { OpenAPI } from "@/openapi";
+import { store } from "@/reducers/store";
 import { JwtUtilities } from "@/utils/jwtUtilities";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { Provider } from "react-redux";
 
 export default function Home() {
   const router = useRouter();
@@ -29,13 +32,14 @@ export default function Home() {
   }
 
   return (
-    <>
+    <Provider store={store}>
+      <Loader/>
       {jwtExpired == false && (
           process.env.APP_MODE === 'INVITATION' ?
           <HomeInvitation></HomeInvitation> : 
           <HomeClient></HomeClient>
         )
       }
-    </>
+    </Provider>
   );
 }

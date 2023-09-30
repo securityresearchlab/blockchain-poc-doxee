@@ -4,27 +4,48 @@ import Button from "@/components/Button/Button";
 import Container from "@/components/Container/Container";
 import Logo from "@/components/Logo/Logo";
 import { ProposalDto, UserDto, UsersService } from "@/openapi";
+import { LOADER_VISIBLE } from "@/reducers/actions";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function HomeInvitation() {
     const router = useRouter();
+    const dispatch = useDispatch();
   
     const [user, setUser] = useState<UserDto>();
     const [proposal, setProposal] = useState<ProposalDto>();
   
     useEffect(() => {
+      dispatch({
+        type: LOADER_VISIBLE,
+        visible: true,
+      });
         UsersService.usersControllerGetUser()
             .then((res: UserDto) => { 
                 setUser(res);
                 setProposal(res?.proposals?.sort((a, b) => a.creationDate > b.creationDate ? 1 : 0).at(0));
+                dispatch({
+                  type: LOADER_VISIBLE,
+                  visible: false,
+                });
             });
     }, []);
   
     function handleRequestNewInvitation() {
+      dispatch({
+        type: LOADER_VISIBLE,
+        visible: true,
+      });
       if(user?.email) 
         UsersService.usersControllerGenerateNewProposal()
-          .then(res => setProposal(res));
+          .then(res => {
+            setProposal(res);
+            dispatch({
+              type: LOADER_VISIBLE,
+              visible: false,
+            });
+          });
     }
   
     function handleLogout() {

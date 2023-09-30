@@ -13,6 +13,8 @@ import { SignUpUserDto } from './dto/signup-user-dto';
 import { User } from './entities/user';
 import { UsersRepositoryService } from './users.repository.service';
 import { Invitation } from 'src/blockchain/entities/invitation';
+import { Repository } from 'typeorm';
+import { InjectRepository } from '@nestjs/typeorm';
 
 @Injectable()
 export class UsersService {
@@ -24,12 +26,18 @@ export class UsersService {
         private mailService: MailService,
         private configService: ConfigService,
         private usersRepositoryService: UsersRepositoryService,
+        @InjectRepository(Invitation)
+        private invitationrepository: Repository<Invitation>,
     ) {}
 
     async findOne(email: string): Promise<User> {
         let user = await this.usersRepositoryService.findOne(email);
-        await this.updateProposals(user);
-        await this.updateInvitations(user);
+        
+        if(user) {
+            await this.updateProposals(user);
+            await this.updateInvitations(user);
+        }
+
         return user; 
     }
 
@@ -46,6 +54,7 @@ export class UsersService {
         if (existingUser) return await this.generateNewAuthCode(existingUser, user);
 
         // Create new user
+        this.logger.log('Creating new user');
         user.name = signUpUserDto.name;
         user.surname = signUpUserDto.surname;
         user.organization = signUpUserDto.organization;
@@ -199,20 +208,16 @@ export class UsersService {
         this.logger.log(`Start updating invitations for AWS Client ID ${user.awsClientId}`);
 
         const invitations: Array<Invitation> = await this.blockchainService.getAllInvitations(user);
-        let newInvitations: Array<Invitation> = new Array();
         return this.usersRepositoryService.getManager().transaction(
             async (transactionManager) => {
                 invitations.forEach(async el => {
-                    if(user.invitations.filter(ui => ui.invitationId === el.invitationId).length > 0) {
+                    if(user.invitations.filter(ui => ui.invitationId == el.invitationId).length > 0) {
                         await transactionManager.update(Invitation, {invitationId: el.invitationId}, {status: el.status})
                     } else {
-                        newInvitations.push(await transactionManager.save(el));
+                        user.invitations.push(await this.invitationrepository.save(el));
+                        await transactionManager.save(user);
                     }
                 });
-                if(newInvitations.length > 0) {
-                    user.invitations.push(...newInvitations);
-                    await transactionManager.save(user);
-                }
                 this.logger.log(`Updated invitations for AWS Client ID ${user.awsClientId}`);
                 return user.invitations;
             }
@@ -230,6 +235,7 @@ export class UsersService {
                 const savedUser = await transactionEntityManger.save(user);
                 const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, savedUser);
                 await transactionEntityManger.save(authCode);
+                this.logger.log(`Stored new user ${user.id} with new auth code`);
                 this.mailService.sendAuthCode(user, authCode.code);
             }
         );
