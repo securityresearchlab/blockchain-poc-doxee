@@ -6,11 +6,12 @@ import { UsersController } from './users.controller';
 import { UsersRepositoryService } from './users.repository.service';
 import { UsersService } from './users.service';
 import { Invitation } from 'src/blockchain/entities/invitation';
+import { Proposal } from 'src/blockchain/entities/proposal';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Invitation]),
+    TypeOrmModule.forFeature([User, Invitation, Proposal]),
     BlockchainModule
   ],
   providers: [UsersService, UsersRepositoryService],

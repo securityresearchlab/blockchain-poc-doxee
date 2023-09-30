@@ -1,4 +1,4 @@
-import { Controller, Get, Logger, Post, UseGuards } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Logger, Post, UseGuards } from '@nestjs/common';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { ReqUser } from './decorators/users.decorator';
@@ -34,6 +34,10 @@ export class UsersController {
     @UseGuards(JwtAuthGuard)
     @ApiResponse({type: UserDto})
     async acceptInvitation(@ReqUser() user: User): Promise<UserDto> {
-        return new UserDto(await this.usersService.acceptInvitationAndCreateMember(user));
+        try {
+            return new UserDto(await this.usersService.acceptInvitationAndCreateMember(user));
+        } catch (exception) {
+            throw new HttpException('Error during accept invitation', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }

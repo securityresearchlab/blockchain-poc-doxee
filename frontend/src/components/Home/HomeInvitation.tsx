@@ -24,7 +24,7 @@ export default function HomeInvitation() {
         UsersService.usersControllerGetUser()
             .then((res: UserDto) => { 
                 setUser(res);
-                setProposal(res?.proposals?.sort((a, b) => a.creationDate > b.creationDate ? 1 : 0).at(0));
+                setProposal(res?.proposals?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
                 dispatch({
                   type: LOADER_VISIBLE,
                   visible: false,

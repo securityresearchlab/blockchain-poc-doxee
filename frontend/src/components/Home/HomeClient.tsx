@@ -7,11 +7,15 @@ import ClientInvitationAccept from "./ClientInvitationAccept";
 import FileDisplay from "./FileDisplay";
 import { useDispatch } from "react-redux";
 import { LOADER_VISIBLE } from "@/reducers/actions";
+import PopUpMessage from "../PopUpMessage/PopUpMessage";
 
 export default function HomeClient() {
     const router = useRouter();
     const dispatch = useDispatch();
 
+    const [popUpDisplay, setPopUpDisplay] = useState<boolean>(false);
+    const [popUpSeverity, setPopUpSeverity] = useState<'error' | 'warning' | 'success' | 'info'>('info');
+    const [popUpMessage, setPopUpMessage] = useState<string>('');
     const [user, setUser] = useState<UserDto>();
     const [invitation, setInvitation] = useState<InvitationDto>();
 
@@ -36,9 +40,18 @@ export default function HomeClient() {
             type: LOADER_VISIBLE,
             visible: true,
         });
+        setPopUpDisplay(false);
         UsersService.usersControllerAcceptInvitation()
             .then((res: UserDto) => { 
                 setUser(res);
+                dispatch({
+                    type: LOADER_VISIBLE,
+                    visible: false,
+                });
+            }).catch(err => {
+                setPopUpMessage(err.body.message);
+                setPopUpSeverity('error');
+                setPopUpDisplay(true);
                 dispatch({
                     type: LOADER_VISIBLE,
                     visible: false,
@@ -53,6 +66,7 @@ export default function HomeClient() {
 
     return (
         <>
+            <PopUpMessage serverity={popUpSeverity} title={popUpSeverity.toUpperCase()} message={popUpMessage} display={popUpDisplay}/>
             {(invitation && !user?.memberId) &&
                 <ClientInvitationAccept 
                     user={user} 

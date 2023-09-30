@@ -10,7 +10,6 @@ import { Invitation } from './entities/invitation';
 @Injectable()
 export class BlockchainService {
     private readonly logger = new Logger(BlockchainService.name);
-
     private readonly SCRIPTS_PATH = path.join(process.cwd(), 'src', 'blockchain', 'scripts');
 
     constructor(
@@ -97,18 +96,16 @@ export class BlockchainService {
     async acceptInvitationAndCreateMember(user: User): Promise<string> {
         this.logger.log(`Start generating AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
         
-        const invitation: Invitation = user.invitations.sort((a, b) => a.creationDate > b.creationDate ? 1 : 0).at(0);
+        const invitation: Invitation = user.invitations.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
 
         const awsAcceptInvitationAndCreateMemberScriptPath = path.join(this.SCRIPTS_PATH, 'awsAcceptInvitationAndCreateMember.sh');
+        const memberConfig = `'Name=${user.organization.replaceAll('.', '')},Description=${user.organization.replaceAll('.', '')},FrameworkConfiguration={Fabric={AdminUsername=${user.name + user.surname},AdminPassword=${user.id.replaceAll('-', '')}}}'`;
         return await executeBashSript(
             awsAcceptInvitationAndCreateMemberScriptPath, 
             [
                 this.configService.get('AWS_NETWORK_ID'),
                 invitation.invitationId,
-                user.organization,
-                user.organization,
-                user.name + user.surname,
-                user.id,
+                `Name=${user.organization},Description=${user.organization},FrameworkConfiguration={Fabric={AdminUsername=${user.name+user.surname},AdminPassword=${user.id}}}`
             ], 
             this.logger
         ).then(response => {
@@ -117,6 +114,8 @@ export class BlockchainService {
                 this.logger.log(`Successfully generated AWS Mmeber | AwsClientId ${user.awsClientId} | MemberId ${memberId}`);
                 return memberId;
             }
+        }).catch(error => {
+            throw new HttpException('Error during the creation of memeber', HttpStatus.INTERNAL_SERVER_ERROR);
         });
         
     }

@@ -27,7 +27,9 @@ export class UsersService {
         private configService: ConfigService,
         private usersRepositoryService: UsersRepositoryService,
         @InjectRepository(Invitation)
-        private invitationrepository: Repository<Invitation>,
+        private invitationRepository: Repository<Invitation>,
+        @InjectRepository(Proposal)
+        private proposalRepository: Repository<Proposal>,
     ) {}
 
     async findOne(email: string): Promise<User> {
@@ -90,14 +92,16 @@ export class UsersService {
      */
     private async verifyCodeAndActivateUser(user: User, authCode: string): Promise<any> {
         return await this.usersRepositoryService.getManager().transaction(
-            async (transactionManger) => {
+            async (transactionManager) => {
                 const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) {
                     const proposalId = await this.blockchainService.generateProposal(user);
-                    user.proposals.push(await transactionManger.save(await this.blockchainService.getProposalById(proposalId)));
-                    await transactionManger.update(AuthCode, {user: user}, {used: true});
+                    user.proposals.push(await transactionManager.save(await this.blockchainService.getProposalById(proposalId)));
+                    await transactionManager.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
-                    return await transactionManger.save(user);
+                    user = await transactionManager.save(user);
+                    await transactionManager.release();
+                    return user;
                 } 
                 throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
             }
@@ -113,13 +117,15 @@ export class UsersService {
      */
     private async verifyCodeAndActivateClientUser(user: User, authCode: string) {
         return await this.usersRepositoryService.getManager().transaction(
-            async (transactionManger) => {
+            async (transactionManager) => {
                 const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) {
-                    await transactionManger.update(AuthCode, {user: user}, {used: true});
+                    await transactionManager.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
-                    user.invitations = await transactionManger.save(await this.blockchainService.getAllInvitations(user));
-                    return await transactionManger.save(user);
+                    user.invitations = await transactionManager.save(await this.blockchainService.getAllInvitations(user));
+                    user = await transactionManager.save(user);
+                    await transactionManager.release();
+                    return user;
                 } 
                 throw new HttpException('Forbidden', HttpStatus.FORBIDDEN);
             }
@@ -167,10 +173,11 @@ export class UsersService {
      */
     async verifyCode(user: User, authCode: string): Promise<any> {
         return await this.usersRepositoryService.getManager().transaction(
-            async (transactionManger) => {
+            async (transactionManager) => {
                 const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) 
-                    return await transactionManger.update(AuthCode, {user: user}, {used: true});
+                    return await transactionManager.update(AuthCode, {user: user}, {used: true});
+                await transactionManager.release();
                 throw new HttpException('forbidden', HttpStatus.FORBIDDEN);
             }
         )
@@ -188,6 +195,7 @@ export class UsersService {
                 const authCode = await this.authCodeService.generateNewAuthCode(ReasonEnum.SIGN_UP, existingUser);
                 user.authCodes.push(authCode);
                 await transactionManager.save(user);
+                await transactionManager.release();
                 this.mailService.sendAuthCode(user, authCode.code);
                 return authCode;
             }
@@ -198,7 +206,7 @@ export class UsersService {
         user = await this.usersRepositoryService.findOne(user.email);
         await user?.proposals?.forEach(async proposal => {
             proposal.status = ProposalStatusEnum[(await this.blockchainService.getProposalById(proposal.proposalId)).status];
-            await this.usersRepositoryService.getManager().update(Proposal, {proposalId: proposal.proposalId}, {status: proposal.status});
+            await this.proposalRepository.manager.update(Proposal, {proposalId: proposal.proposalId}, {status: proposal.status});
         });
         return (await this.usersRepositoryService.findOne(user.email)).proposals;
     }
@@ -214,11 +222,12 @@ export class UsersService {
                     if(user.invitations.filter(ui => ui.invitationId == el.invitationId).length > 0) {
                         await transactionManager.update(Invitation, {invitationId: el.invitationId}, {status: el.status})
                     } else {
-                        user.invitations.push(await this.invitationrepository.save(el));
+                        user.invitations.push(await this.invitationRepository.save(el));
                         await transactionManager.save(user);
                     }
                 });
                 this.logger.log(`Updated invitations for AWS Client ID ${user.awsClientId}`);
+                await transactionManager.release();
                 return user.invitations;
             }
         );
