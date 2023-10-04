@@ -35,13 +35,10 @@ export class AuthController {
     @UsePipes(new ValidationPipe({transform: true}))
     @ApiBody({type: SignUpUserDto})
     @ApiResponse({status: HttpStatus.OK, description: 'User created successfully.'})
+    @ApiResponse({status: HttpStatus.BAD_REQUEST, description: 'Fields doesn\'t respect application constraints'})
     @ApiResponse({status: HttpStatus.INTERNAL_SERVER_ERROR, description: 'Error during registration process.'})
     async signUp(@Res() res: Response, @Body() signUpUserDto: SignUpUserDto) {
-        try {
-            await this.usersService.saveOne(signUpUserDto);
-            res.status(HttpStatus.CREATED).send({});
-        } catch (error) {
-            return error;
-        }
+        await this.usersService.saveOne(signUpUserDto);
+        res.status(HttpStatus.CREATED).send('User created successfully');
     }
 }

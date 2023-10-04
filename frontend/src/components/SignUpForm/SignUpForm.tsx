@@ -12,7 +12,9 @@ import { useDispatch } from "react-redux";
 import { LOADER_VISIBLE } from "@/reducers/actions";
 
 export default function SignUpForm() {
-    const expression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    const emaiEexpression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
+    const orgExpression: RegExp = /^(?!-|[0-9])(?!.*-$)(?!.*?--)[a-zA-Z0-9-]+$/i;
+    const nameExpression: RegExp = /^[a-zA-Z][a-zA-Z0-9]*$/i;
 
     const router = useRouter();
     const dispatch = useDispatch();
@@ -36,12 +38,6 @@ export default function SignUpForm() {
     function handleRegister() {
         setPopUpDisplay(false);
         if(name && surname && organization && email) {
-            if(!expression.test(email)) {
-                setPopUpMessage("Inserted email is not valid");
-                setPopUpSeverity('warning');
-                setPopUpDisplay(true);
-                return;
-            }
             const signUpUserDto: SignUpUserDto = {
                 name: name,
                 surname: surname,
@@ -62,7 +58,7 @@ export default function SignUpForm() {
                         visible: false,
                     });
                 }).catch((err) => {
-                    setPopUpMessage("Error during signUp: " + err.message);
+                    setPopUpMessage("Error during signUp: " + err.body.message);
                     setPopUpSeverity('error');
                     setPopUpDisplay(true);
                     dispatch({

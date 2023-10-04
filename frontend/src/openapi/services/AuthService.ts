@@ -44,6 +44,7 @@ export class AuthService {
             body: requestBody,
             mediaType: 'application/json',
             errors: {
+                400: `Fields doesn't respect application constraints`,
                 500: `Error during registration process.`,
             },
         });

@@ -204,11 +204,24 @@ export class UsersService {
 
     private async updateProposals(user: User): Promise<Array<Proposal>> {
         user = await this.usersRepositoryService.findOne(user.email);
-        await user?.proposals?.forEach(async proposal => {
-            proposal.status = ProposalStatusEnum[(await this.blockchainService.getProposalById(proposal.proposalId)).status];
-            await this.proposalRepository.manager.update(Proposal, {proposalId: proposal.proposalId}, {status: proposal.status});
-        });
-        return (await this.usersRepositoryService.findOne(user.email)).proposals;
+        this.logger.log(`Start updating proposals for AWS Client ID ${user.awsClientId}`);
+
+        const proposals: Array<Proposal> = await this.blockchainService.getAllProposals(user);
+        return this.usersRepositoryService.getManager().transaction(
+            async (transactionManager) => {
+                proposals.forEach(async el => {
+                    if(user.proposals.filter(ui => ui.proposalId == el.proposalId).length > 0) {
+                        await transactionManager.update(Proposal, {proposalId: el.proposalId}, {status: el.status})
+                    } else {
+                        user.proposals.push(await this.proposalRepository.save(el));
+                        await transactionManager.save(user);
+                    }
+                });
+                this.logger.log(`Updated proposals for AWS Client ID ${user.awsClientId}`);
+                await transactionManager.release();
+                return user.proposals;
+            }
+        );
     }
 
     private async updateInvitations(user: User): Promise<Array<Invitation>> {

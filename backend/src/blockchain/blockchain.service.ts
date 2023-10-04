@@ -71,6 +71,28 @@ export class BlockchainService {
     }
 
     /**
+     * Retrieve all proposals for aws account configured
+     * @param user 
+     */
+    async getAllProposals(user: User): Promise<Array<Proposal>> {
+        this.logger.log(`Start retrieving proposals list for AWS account ${user.awsClientId}`);
+        
+        const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
+        return await executeBashSript(
+            awsListProposalsScriptPath, 
+            [this.configService.get('AWS_NETWORK_ID')], 
+            this.logger)
+            .then(response => {
+                const objResponse: Array<any> = JSON.parse(response)["Proposals"];
+                let proposals: Array<Proposal> = new Array();
+                objResponse.forEach(el => {
+                    proposals.push(new Proposal(el));
+                })
+                return proposals;
+            });
+    }
+
+    /**
      * Get all invitations for aws account configured
      * @returns 
      */
@@ -99,13 +121,12 @@ export class BlockchainService {
         const invitation: Invitation = user.invitations.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
 
         const awsAcceptInvitationAndCreateMemberScriptPath = path.join(this.SCRIPTS_PATH, 'awsAcceptInvitationAndCreateMember.sh');
-        const memberConfig = `'Name=${user.organization.replaceAll('.', '')},Description=${user.organization.replaceAll('.', '')},FrameworkConfiguration={Fabric={AdminUsername=${user.name + user.surname},AdminPassword=${user.id.replaceAll('-', '')}}}'`;
         return await executeBashSript(
             awsAcceptInvitationAndCreateMemberScriptPath, 
             [
                 this.configService.get('AWS_NETWORK_ID'),
                 invitation.invitationId,
-                `Name=${user.organization},Description=${user.organization},FrameworkConfiguration={Fabric={AdminUsername=${user.name+user.surname},AdminPassword=${user.id}}}`
+                `Name=${user.organization},FrameworkConfiguration={Fabric={AdminUsername=${user.name+user.surname},AdminPassword=AP_${user.id.substring(0, 8)}}}`
             ], 
             this.logger
         ).then(response => {
