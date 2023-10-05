@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, JoinTable, OneToMany, PrimaryGenerate
 import { AuthCode } from "../../auth-code/entities/auth-code";
 import { Proposal } from "src/blockchain/entities/proposal";
 import { Invitation } from "src/blockchain/entities/invitation";
+import { Member } from "src/blockchain/entities/member";
 
 @Entity()
 export class User {
@@ -22,28 +23,29 @@ export class User {
 
     @Column()
     email: string;
-
-    @Column({default: null})
-    memberId: string;
-
+    
     @Column({default: false})
     active: boolean;
-
+    
     @CreateDateColumn()
     createDate: Date;
-
+    
     @Column()
     password: string;
-
+    
     @OneToMany(type => AuthCode, authCode => authCode.user)
     @JoinTable()
     authCodes: Array<AuthCode>;
-
+    
     @OneToMany(type => Proposal, proposal => proposal.user)
     @JoinTable()
     proposals: Array<Proposal>;
-
+    
     @OneToMany(type => Invitation, invitation => invitation.user)
     @JoinTable()
     invitations: Array<Invitation>;
+
+    @OneToMany(type => Member, member => member.user)
+    @JoinTable()
+    memebers: Array<Member>;
 }

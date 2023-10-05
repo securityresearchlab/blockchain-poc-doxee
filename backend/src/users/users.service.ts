@@ -15,6 +15,7 @@ import { UsersRepositoryService } from './users.repository.service';
 import { Invitation } from 'src/blockchain/entities/invitation';
 import { Repository } from 'typeorm';
 import { InjectRepository } from '@nestjs/typeorm';
+import { Member } from 'src/blockchain/entities/member';
 
 @Injectable()
 export class UsersService {
@@ -30,6 +31,8 @@ export class UsersService {
         private invitationRepository: Repository<Invitation>,
         @InjectRepository(Proposal)
         private proposalRepository: Repository<Proposal>,
+        @InjectRepository(Member)
+        private memberRepository: Repository<Member>,
     ) {}
 
     async findOne(email: string): Promise<User> {
@@ -159,7 +162,8 @@ export class UsersService {
         this.logger.log(`Start accepting invitation for AWS client ${user.awsClientId}`);
 
         user = await this.usersRepositoryService.findOne(user.email);
-        user.memberId = await this.blockchainService.acceptInvitationAndCreateMember(await this.findOne(user.email));
+        await this.blockchainService.acceptInvitationAndCreateMember(await this.findOne(user.email));
+        user.memebers.push(...await this.blockchainService.getAllOwnedMembers(user));
         await this.updateInvitations(user);
         return await this.usersRepositoryService.getManager().save(user);
     }
@@ -202,12 +206,17 @@ export class UsersService {
         )
     }
 
+    /**
+     * Updates all proposals of given user retrieving items from AWS account
+     * @param user 
+     * @returns 
+     */
     private async updateProposals(user: User): Promise<Array<Proposal>> {
         user = await this.usersRepositoryService.findOne(user.email);
         this.logger.log(`Start updating proposals for AWS Client ID ${user.awsClientId}`);
 
         const proposals: Array<Proposal> = await this.blockchainService.getAllProposals(user);
-        return this.usersRepositoryService.getManager().transaction(
+        return await this.usersRepositoryService.getManager().transaction(
             async (transactionManager) => {
                 proposals.forEach(async el => {
                     if(user.proposals.filter(ui => ui.proposalId == el.proposalId).length > 0) {
@@ -224,12 +233,17 @@ export class UsersService {
         );
     }
 
+    /**
+     * Updates all invitations of given user retrieving items from AWS account
+     * @param user 
+     * @returns 
+     */
     private async updateInvitations(user: User): Promise<Array<Invitation>> {
         user = await this.usersRepositoryService.findOne(user.email);
         this.logger.log(`Start updating invitations for AWS Client ID ${user.awsClientId}`);
 
         const invitations: Array<Invitation> = await this.blockchainService.getAllInvitations(user);
-        return this.usersRepositoryService.getManager().transaction(
+        return await this.usersRepositoryService.getManager().transaction(
             async (transactionManager) => {
                 invitations.forEach(async el => {
                     if(user.invitations.filter(ui => ui.invitationId == el.invitationId).length > 0) {
@@ -242,6 +256,33 @@ export class UsersService {
                 this.logger.log(`Updated invitations for AWS Client ID ${user.awsClientId}`);
                 await transactionManager.release();
                 return user.invitations;
+            }
+        );
+    }
+
+    /**
+     * Updates all invitations of given user retrieving items from AWS account
+     * @param user 
+     * @returns 
+     */
+    private async updateMembers(user: User): Promise<Array<Member>> {
+        user = await this.usersRepositoryService.findOne(user.email);
+        this.logger.log(`Start updating members for AWS Client ID ${user.awsClientId}`);
+
+        const members: Array<Member> = await this.blockchainService.getAllOwnedMembers(user);
+        return await this.usersRepositoryService.getManager().transaction(
+            async (transactionManager) => {
+                members.forEach(async el => {
+                    if(user.memebers.filter(ui => ui.memberId == el.memberId).length > 0) {
+                        await transactionManager.update(Member, {memberId: el.memberId}, {status: el.status})
+                    } else {
+                        user.memebers.push(await this.memberRepository.save(el));
+                        await transactionManager.save(user);
+                    }
+                });
+                this.logger.log(`Updated members for AWS Client ID ${user.awsClientId}`);
+                await transactionManager.release();
+                return user.memebers;
             }
         );
     }

@@ -6,6 +6,7 @@ import { User } from 'src/users/entities/user';
 import { executeBashSript } from './utils';
 import { Proposal } from './entities/proposal';
 import { Invitation } from './entities/invitation';
+import { Member } from './entities/member';
 
 @Injectable()
 export class BlockchainService {
@@ -79,9 +80,7 @@ export class BlockchainService {
         
         const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
         return await executeBashSript(
-            awsListProposalsScriptPath, 
-            [this.configService.get('AWS_NETWORK_ID')], 
-            this.logger)
+            awsListProposalsScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger)
             .then(response => {
                 const objResponse: Array<any> = JSON.parse(response)["Proposals"];
                 let proposals: Array<Proposal> = new Array();
@@ -108,6 +107,23 @@ export class BlockchainService {
                     invitations.push(new Invitation(el));
                 })
                 return invitations;
+            });
+    }
+
+    async getAllOwnedMembers(user: User): Promise<Array<Member>> {
+        this.logger.log(`Start retrieving member list for AWS account ${user.awsClientId}`);
+
+        const awsListMembersScriptPath = path.join(this.SCRIPTS_PATH, 'awsListMembers.sh');
+        return await executeBashSript(awsListMembersScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger)
+            .then(response => {
+                const objResponse: Array<any> = JSON.parse(response)["Members"];
+                let members: Array<Member> = new Array();
+                objResponse.forEach(el => {
+                    const member = new Member(el);
+                    if(member.isOwned)
+                        members.push(member);
+                })
+                return members;
             });
     }
 

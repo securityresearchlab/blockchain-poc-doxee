@@ -9,8 +9,8 @@ export type UserDto = {
     organization: string;
     awsClientId: string;
     email: string;
-    memberId: string;
     proposals: Array<any>;
     invitations: Array<any>;
+    members: Array<any>;
 };
 
