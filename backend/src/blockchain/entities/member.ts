@@ -1,6 +1,7 @@
 import { User } from "src/users/entities/user";
-import { Column, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Column, Entity, JoinTable, ManyToOne, OneToMany, PrimaryGeneratedColumn } from "typeorm";
 import { MemberStatusEnum } from "./member-status-enum";
+import { Node } from "./node";
 
 @Entity()
 export class Member {
@@ -25,6 +26,10 @@ export class Member {
     @Column()
     isOwned: boolean;
 
+    @OneToMany(type => Node, node => node.nodeId)
+    @JoinTable()
+    nodes: Array<Node>;
+    
     @ManyToOne(type => User, user => user.email)
     @JoinTable()
     user: User;
@@ -34,7 +39,8 @@ export class Member {
         this.name = memberAwsObj?.["Name"];
         this.descritpion = memberAwsObj?.["Description"];
         this.status = MemberStatusEnum[memberAwsObj?.["Status"]];
-        this.creationDate = new Date(memberAwsObj?.["Id"]);
+        this.creationDate = new Date(memberAwsObj?.["CreationDate"]);
         this.isOwned = new Boolean(memberAwsObj?.["isOwned"]).valueOf();
+        this.nodes = new Array<Node>();
     }
 }

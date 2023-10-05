@@ -41,6 +41,7 @@ export class UsersService {
         if(user) {
             await this.updateProposals(user);
             await this.updateInvitations(user);
+            await this.updateMembers(user);
         }
 
         return user; 
@@ -66,9 +67,10 @@ export class UsersService {
         user.awsClientId = signUpUserDto.awsClientId;
         user.email = signUpUserDto.email;
         user.password = await hash(signUpUserDto.password);
+        user.authCodes = new Array();
         user.proposals = new Array();
         user.invitations = new Array();
-        user.authCodes = new Array();
+        user.memebers = new Array();
         
         return await this.saveWithNewAuthCode(user);
     } 
@@ -166,6 +168,20 @@ export class UsersService {
         user.memebers.push(...await this.blockchainService.getAllOwnedMembers(user));
         await this.updateInvitations(user);
         return await this.usersRepositoryService.getManager().save(user);
+    }
+
+    /**
+     * Create peer node for last memberId available
+     * @param user 
+     * @returns 
+     */
+    async createPeerNode(user: User): Promise<User> {
+        this.logger.log(`Start creation of Peer Node for AWS client ${user.awsClientId}`);
+
+        // TODO: Link creation of peer node to user 
+        // Member must be available to create a new peer
+
+        return user;
     }
 
     /**

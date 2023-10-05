@@ -7,6 +7,7 @@ import { executeBashSript } from './utils';
 import { Proposal } from './entities/proposal';
 import { Invitation } from './entities/invitation';
 import { Member } from './entities/member';
+import { Node } from './entities/node';
 
 @Injectable()
 export class BlockchainService {
@@ -72,7 +73,7 @@ export class BlockchainService {
     }
 
     /**
-     * Retrieve all proposals for aws account configured
+     * Retrieve all proposals for aws account and network configured
      * @param user 
      */
     async getAllProposals(user: User): Promise<Array<Proposal>> {
@@ -110,6 +111,11 @@ export class BlockchainService {
             });
     }
 
+    /**
+     * Get all 
+     * @param user 
+     * @returns 
+     */
     async getAllOwnedMembers(user: User): Promise<Array<Member>> {
         this.logger.log(`Start retrieving member list for AWS account ${user.awsClientId}`);
 
@@ -124,6 +130,24 @@ export class BlockchainService {
                         members.push(member);
                 })
                 return members;
+            }).catch(error => {
+                throw new HttpException('Error during retrieving of memebers', HttpStatus.INTERNAL_SERVER_ERROR);
+            });
+    }
+
+    /**
+     * Retrieve all nodes for aws account and network configured
+     * @param user 
+     */
+    async getPeerNodeById(nodeId: string): Promise<Node> {
+        this.logger.log(`Start retrieving peer node with ID ${nodeId}`);
+
+        const awsGetPeerNodeScriptPath = path.join(this.SCRIPTS_PATH, 'awsGetPeerNode.sh');
+        return await executeBashSript(awsGetPeerNodeScriptPath, [this.configService.get('AWS_NETWORK_ID'), nodeId], this.logger)
+            .then(response => {
+                return new Node(JSON.parse(response)["Node"]);
+            }).catch(error => {
+                throw new HttpException(`Error during retrieving of peer node ${nodeId}`, HttpStatus.INTERNAL_SERVER_ERROR);
             });
     }
 
@@ -132,7 +156,7 @@ export class BlockchainService {
      * @param user 
      */
     async acceptInvitationAndCreateMember(user: User): Promise<string> {
-        this.logger.log(`Start generating AWS Infrastructure | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
+        this.logger.log(`Start generating AWS Member | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
         
         const invitation: Invitation = user.invitations.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
 
@@ -155,6 +179,30 @@ export class BlockchainService {
             throw new HttpException('Error during the creation of memeber', HttpStatus.INTERNAL_SERVER_ERROR);
         });
         
+    }
+
+    async createPeerNode(user: User): Promise<Node> {
+        const member: Member = user.memebers.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
+        this.logger.log(`Start creating AWS peer node | AwsClientId ${user.awsClientId} | MemberId ${member.memberId}`);
+
+        const awsCreatePeerNodeScriptPath = path.join(this.SCRIPTS_PATH, 'awsCreatePeerNode.sh');
+        return await executeBashSript(
+            awsCreatePeerNodeScriptPath, 
+            [
+                `{"InstanceType":"bc.t3.small","AvailabilityZone":"${this.configService.get('AWS_REGION')}"}`,
+                this.configService.get('AWS_NETWORK_ID'),
+                member.memberId,
+            ], 
+            this.logger
+        ).then(async response => {
+            if(response)  {
+                const nodeId: string = JSON.parse(response)['NodeId'];
+                this.logger.log(`Successfully generated AWS Peer Node | AwsClientId ${user.awsClientId} | MemberId ${member.memberId} | NodeId ${nodeId}`);
+                return await this.getPeerNodeById(nodeId);
+            }
+        }).catch(error => {
+            throw new HttpException('Error during the creation of peer node', HttpStatus.INTERNAL_SERVER_ERROR);
+        });
     }
 
 }
