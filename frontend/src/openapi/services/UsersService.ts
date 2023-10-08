@@ -44,4 +44,15 @@ export class UsersService {
         });
     }
 
+    /**
+     * @returns UserDto
+     * @throws ApiError
+     */
+    public static usersControllerCreatePeerNode(): CancelablePromise<UserDto> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v0/secure/users/createPeerNode',
+        });
+    }
+
 }

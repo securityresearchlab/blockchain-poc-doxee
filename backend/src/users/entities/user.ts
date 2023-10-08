@@ -47,5 +47,5 @@ export class User {
 
     @OneToMany(type => Member, member => member.user)
     @JoinTable()
-    memebers: Array<Member>;
+    members: Array<Member>;
 }

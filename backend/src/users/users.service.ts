@@ -1,21 +1,21 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { InjectRepository } from '@nestjs/typeorm';
 import { AuthCodeService } from 'src/auth-code/auth-code.service';
 import { AuthCode } from 'src/auth-code/entities/auth-code';
 import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
 import { hash } from 'src/auth-code/utils/crypt-and-decrypt';
 import { BlockchainService } from 'src/blockchain/blockchain.service';
+import { Invitation } from 'src/blockchain/entities/invitation';
+import { Member } from 'src/blockchain/entities/member';
+import { Node } from 'src/blockchain/entities/node';
 import { Proposal } from 'src/blockchain/entities/proposal';
-import { ProposalStatusEnum } from 'src/blockchain/entities/proposal-status-enum';
 import { AppModeEnum } from 'src/config/app-mode-enum';
 import { MailService } from 'src/mail/mail.service';
+import { Repository } from 'typeorm';
 import { SignUpUserDto } from './dto/signup-user-dto';
 import { User } from './entities/user';
 import { UsersRepositoryService } from './users.repository.service';
-import { Invitation } from 'src/blockchain/entities/invitation';
-import { Repository } from 'typeorm';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Member } from 'src/blockchain/entities/member';
 
 @Injectable()
 export class UsersService {
@@ -33,6 +33,8 @@ export class UsersService {
         private proposalRepository: Repository<Proposal>,
         @InjectRepository(Member)
         private memberRepository: Repository<Member>,
+        @InjectRepository(Node)
+        private noderepository: Repository<Node>,
     ) {}
 
     async findOne(email: string): Promise<User> {
@@ -70,7 +72,7 @@ export class UsersService {
         user.authCodes = new Array();
         user.proposals = new Array();
         user.invitations = new Array();
-        user.memebers = new Array();
+        user.members = new Array();
         
         return await this.saveWithNewAuthCode(user);
     } 
@@ -144,9 +146,9 @@ export class UsersService {
     async generateNewProposal(email: string) {
         this.logger.log(`Start generating new proposal for ${email}`);
         let user: User = await this.findOne(email); 
-        if(user.proposals.filter(proposal => 
-            proposal.status == ProposalStatusEnum.APPROVED || proposal.status == ProposalStatusEnum.IN_PROGRESS).length > 0)
-            throw new HttpException('Unable to generate new Proposal', HttpStatus.FORBIDDEN);
+        // if(user.proposals.filter(proposal => 
+        //     proposal.status == ProposalStatusEnum.APPROVED || proposal.status == ProposalStatusEnum.IN_PROGRESS).length > 0)
+        //     throw new HttpException('Unable to generate new Proposal', HttpStatus.FORBIDDEN);
 
         const proposalId = await this.blockchainService.generateProposal(user);
         const proposal = await this.blockchainService.getProposalById(proposalId);
@@ -165,7 +167,7 @@ export class UsersService {
 
         user = await this.usersRepositoryService.findOne(user.email);
         await this.blockchainService.acceptInvitationAndCreateMember(await this.findOne(user.email));
-        user.memebers.push(...await this.blockchainService.getAllOwnedMembers(user));
+        user.members.push(...await this.blockchainService.getAllOwnedMembers(user));
         await this.updateInvitations(user);
         return await this.usersRepositoryService.getManager().save(user);
     }
@@ -178,10 +180,16 @@ export class UsersService {
     async createPeerNode(user: User): Promise<User> {
         this.logger.log(`Start creation of Peer Node for AWS client ${user.awsClientId}`);
 
-        // TODO: Link creation of peer node to user 
-        // Member must be available to create a new peer
+        user = await this.usersRepositoryService.findOne(user.email);
+        const node: Node = await this.noderepository.save(await this.blockchainService.createPeerNode(user));
+        user.members.forEach(async member => {
+            if(member.memberId == node.memberId) {
+                member.nodes.push(node);
+                await this.memberRepository.manager.update(Member, {memberId: member.memberId}, {nodes: member.nodes})
+            }
+        });
 
-        return user;
+        return await this.usersRepositoryService.findOne(user.email);
     }
 
     /**
@@ -285,20 +293,26 @@ export class UsersService {
         user = await this.usersRepositoryService.findOne(user.email);
         this.logger.log(`Start updating members for AWS Client ID ${user.awsClientId}`);
 
-        const members: Array<Member> = await this.blockchainService.getAllOwnedMembers(user);
+        let members = new Array<Member>();
+        try {
+            members = await this.blockchainService.getAllOwnedMembers(user);
+        } catch(err) {
+            this.logger.warn(`No members was found for current AWS Client ID ${user.awsClientId}`);
+            return members;
+        }
         return await this.usersRepositoryService.getManager().transaction(
             async (transactionManager) => {
                 members.forEach(async el => {
-                    if(user.memebers.filter(ui => ui.memberId == el.memberId).length > 0) {
+                    if(user.members.filter(ui => ui.memberId == el.memberId).length > 0) {
                         await transactionManager.update(Member, {memberId: el.memberId}, {status: el.status})
                     } else {
-                        user.memebers.push(await this.memberRepository.save(el));
+                        user.members.push(await this.memberRepository.save(el));
                         await transactionManager.save(user);
                     }
                 });
                 this.logger.log(`Updated members for AWS Client ID ${user.awsClientId}`);
                 await transactionManager.release();
-                return user.memebers;
+                return user.members;
             }
         );
     }

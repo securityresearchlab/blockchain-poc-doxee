@@ -131,7 +131,7 @@ export class BlockchainService {
                 })
                 return members;
             }).catch(error => {
-                throw new HttpException('Error during retrieving of memebers', HttpStatus.INTERNAL_SERVER_ERROR);
+                throw new HttpException('Error during retrieving of members', HttpStatus.INTERNAL_SERVER_ERROR);
             });
     }
 
@@ -156,9 +156,10 @@ export class BlockchainService {
      * @param user 
      */
     async acceptInvitationAndCreateMember(user: User): Promise<string> {
-        this.logger.log(`Start generating AWS Member | AwsClientId ${user.awsClientId} | ProposalId ${user.proposals}`);
-        
+        const proposal = user.proposals.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
         const invitation: Invitation = user.invitations.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
+
+        this.logger.log(`Start generating AWS Member | AwsClientId ${user.awsClientId} | ProposalId ${proposal.proposalId} | InvitationId ${invitation.invitationId}`);
 
         const awsAcceptInvitationAndCreateMemberScriptPath = path.join(this.SCRIPTS_PATH, 'awsAcceptInvitationAndCreateMember.sh');
         return await executeBashSript(
@@ -166,7 +167,7 @@ export class BlockchainService {
             [
                 this.configService.get('AWS_NETWORK_ID'),
                 invitation.invitationId,
-                `Name=${user.organization},FrameworkConfiguration={Fabric={AdminUsername=${user.name+user.surname},AdminPassword=AP_${user.id.substring(0, 8)}}}`
+                `Name=${user.organization + user.members.length + 1},FrameworkConfiguration={Fabric={AdminUsername=${user.name+user.surname},AdminPassword=AP_${user.id.substring(0, 8)}}}`
             ], 
             this.logger
         ).then(response => {
@@ -182,7 +183,9 @@ export class BlockchainService {
     }
 
     async createPeerNode(user: User): Promise<Node> {
-        const member: Member = user.memebers.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
+        if(user.members.length < 1)
+            throw new HttpException('Cannot create a peer node without a member', HttpStatus.CONFLICT);
+        const member: Member = user.members?.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
         this.logger.log(`Start creating AWS peer node | AwsClientId ${user.awsClientId} | MemberId ${member.memberId}`);
 
         const awsCreatePeerNodeScriptPath = path.join(this.SCRIPTS_PATH, 'awsCreatePeerNode.sh');

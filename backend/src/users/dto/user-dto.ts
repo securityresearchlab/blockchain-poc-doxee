@@ -49,6 +49,6 @@ export class UserDto {
         this.email = user.email;
         this.proposals = user.proposals;
         this.invitations = user.invitations
-        this.members = user.memebers;
+        this.members = user.members;
     }
 }

@@ -8,11 +8,12 @@ import { UsersService } from './users.service';
 import { Invitation } from 'src/blockchain/entities/invitation';
 import { Proposal } from 'src/blockchain/entities/proposal';
 import { Member } from 'src/blockchain/entities/member';
+import { Node } from 'src/blockchain/entities/node';
 
 @Global()
 @Module({
   imports: [
-    TypeOrmModule.forFeature([User, Invitation, Proposal, Member]),
+    TypeOrmModule.forFeature([User, Invitation, Proposal, Member, Node]),
     BlockchainModule
   ],
   providers: [UsersService, UsersRepositoryService],

@@ -41,6 +41,5 @@ export class Member {
         this.status = MemberStatusEnum[memberAwsObj?.["Status"]];
         this.creationDate = new Date(memberAwsObj?.["CreationDate"]);
         this.isOwned = new Boolean(memberAwsObj?.["isOwned"]).valueOf();
-        this.nodes = new Array<Node>();
     }
 }

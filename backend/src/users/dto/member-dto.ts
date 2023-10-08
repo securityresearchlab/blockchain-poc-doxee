@@ -1,7 +1,8 @@
 import { ApiProperty } from "@nestjs/swagger";
-import { IsBoolean, IsDate, IsEnum, IsNotEmpty } from "class-validator";
+import { IsArray, IsBoolean, IsDate, IsEnum, IsNotEmpty } from "class-validator";
 import { Member } from "src/blockchain/entities/member";
 import { MemberStatusEnum } from "src/blockchain/entities/member-status-enum";
+import { NodeDto } from "./node-dto";
 
 export class MemberDto {
     @IsNotEmpty()
@@ -17,11 +18,15 @@ export class MemberDto {
     @IsNotEmpty()
     @IsBoolean()
     isOwned: boolean;
-
+    
     @IsNotEmpty()
     @IsEnum(MemberStatusEnum)
     @ApiProperty({enum: MemberStatusEnum})
     status: MemberStatusEnum;
+
+    @IsArray()
+    @ApiProperty({type: [NodeDto], isArray: true})
+    nodes: Array<NodeDto>;
 
     constructor(member: Member) {
         this.memberId = member.memberId;
@@ -29,5 +34,6 @@ export class MemberDto {
         this.creationDate = member.creationDate;
         this.isOwned = member.isOwned;
         this.status = member.status;
+        this.nodes = member.nodes;
     }
 }

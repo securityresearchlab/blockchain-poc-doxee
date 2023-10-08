@@ -37,7 +37,19 @@ export class UsersController {
         try {
             return new UserDto(await this.usersService.acceptInvitationAndCreateMember(user));
         } catch (exception) {
+            this.logger.warn(exception);
             throw new HttpException('Error during accept invitation', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Post("createPeerNode")
+    @UseGuards(JwtAuthGuard)
+    @ApiResponse({type: UserDto})
+    async createPeerNode(@ReqUser() user: User): Promise<UserDto> {
+        try {
+            return new UserDto(await this.usersService.createPeerNode(user));
+        } catch (exception) {
+            throw new HttpException('Error during the creation of peer node', HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }

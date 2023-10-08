@@ -3,24 +3,23 @@
 /* tslint:disable */
 /* eslint-disable */
 
-export type MemberDto = {
-    memberId: string;
-    name: string;
+export type NodeDto = {
+    nodeId: string;
     creationDate: string;
-    isOwned: string;
-    status: MemberDto.status;
-    nodes: Array<any>;
+    status: NodeDto.status;
 };
 
-export namespace MemberDto {
+export namespace NodeDto {
 
     export enum status {
         CREATING = 'CREATING',
         AVAILABLE = 'AVAILABLE',
+        UNHEALTHY = 'UNHEALTHY',
         CREATE_FAILED = 'CREATE_FAILED',
         UPDATING = 'UPDATING',
         DELETING = 'DELETING',
         DELETED = 'DELETED',
+        FAILED = 'FAILED',
         INACCESSIBLE_ENCRYPTION_KEY = 'INACCESSIBLE_ENCRYPTION_KEY',
     }
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { InvitationDto, UserDto, UsersService } from "@/openapi";
+import { InvitationDto, MemberDto, UserDto, UsersService } from "@/openapi";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ClientInvitationAccept from "./ClientInvitationAccept";
@@ -8,6 +8,7 @@ import FileDisplay from "./FileDisplay";
 import { useDispatch } from "react-redux";
 import { LOADER_VISIBLE } from "@/reducers/actions";
 import PopUpMessage from "../PopUpMessage/PopUpMessage";
+import PeerNodeCreation from "./PeerNodeCreation";
 
 export default function HomeClient() {
     const router = useRouter();
@@ -18,6 +19,7 @@ export default function HomeClient() {
     const [popUpMessage, setPopUpMessage] = useState<string>('');
     const [user, setUser] = useState<UserDto>();
     const [invitation, setInvitation] = useState<InvitationDto>();
+    const [member, setMember] = useState<MemberDto>();
 
     useEffect(() => {
         dispatch({
@@ -28,6 +30,7 @@ export default function HomeClient() {
             .then((res: UserDto) => { 
                 setUser(res);
                 setInvitation(res?.invitations?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
+                setMember(res.members?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
                 dispatch({
                     type: LOADER_VISIBLE,
                     visible: false,
@@ -59,6 +62,30 @@ export default function HomeClient() {
             });
     }
 
+    function handleCreatePeerNode() {
+        dispatch({
+            type: LOADER_VISIBLE,
+            visible: true,
+        });
+        setPopUpDisplay(false);
+        UsersService.usersControllerCreatePeerNode()
+            .then((res: UserDto) => { 
+                setUser(res);
+                dispatch({
+                    type: LOADER_VISIBLE,
+                    visible: false,
+                });
+            }).catch(err => {
+                setPopUpMessage(err.body.message);
+                setPopUpSeverity('error');
+                setPopUpDisplay(true);
+                dispatch({
+                    type: LOADER_VISIBLE,
+                    visible: false,
+                });
+            });
+    }
+
     function handleLogout() {
         localStorage.removeItem('X-AUTH-TOKEN');
         router.push("/login")
@@ -67,14 +94,21 @@ export default function HomeClient() {
     return (
         <>
             <PopUpMessage serverity={popUpSeverity} title={popUpSeverity.toUpperCase()} message={popUpMessage} display={popUpDisplay}/>
-            {(invitation && !user?.memberId) &&
+            {(invitation && !user?.members) &&
                 <ClientInvitationAccept 
                     user={user} 
                     invitation={invitation}
                     handleLogout={handleLogout}
                     handleAcceptInvitation={handleAcceptInvitation}/>
             }
-            {user?.memberId &&
+            {(invitation?.status === InvitationDto.status.ACCEPTED && member) &&
+                <PeerNodeCreation 
+                    user={user} 
+                    member={member}
+                    handleLogout={handleLogout}
+                    handleCreatePeerNode={handleCreatePeerNode}/>
+            }
+            {user?.members?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0)?.nodes.length > 0 &&
                 <FileDisplay
                     user={user}
                     handleLogout={handleLogout}/> 
