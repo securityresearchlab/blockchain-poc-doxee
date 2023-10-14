@@ -12,6 +12,9 @@ export class NodeDto {
     creationDate: Date;
 
     @IsNotEmpty()
+    memberId: string;
+
+    @IsNotEmpty()
     @IsEnum(NodeStatusEnum)
     @ApiProperty({enum: NodeStatusEnum})
     status: NodeStatusEnum;
@@ -20,5 +23,6 @@ export class NodeDto {
         this.nodeId = node.nodeId;
         this.creationDate = node.creationDate;
         this.status = node.status;
+        this.memberId = node.memberId;
     }
 }

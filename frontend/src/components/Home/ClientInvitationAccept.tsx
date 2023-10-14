@@ -32,7 +32,7 @@ export default function ClientInvitationAccept({...props}: Props) {
                 </p> 
             }
             <div className="w-full mt-8">
-                {(props.invitation && props.invitation.status != InvitationDto.status.ACCEPTED) &&
+                {(props.invitation && props.invitation.status == InvitationDto.status.PENDING) &&
                     <Button text="Accept Invitation" onClick={props.handleAcceptInvitation} style="primary"></Button>
                 }
                 <Button text="Logout" onClick={props.handleLogout} style="secondary"></Button>

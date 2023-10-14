@@ -41,12 +41,17 @@ export class UsersService {
         let user = await this.usersRepositoryService.findOne(email);
         
         if(user) {
-            await this.updateProposals(user);
-            await this.updateInvitations(user);
-            await this.updateMembers(user);
+            try {
+                await this.updateProposals(user);
+                await this.updateInvitations(user);
+                await this.updateMembers(user);
+                await this.updateNodes(user);
+            } catch (err) {
+                // TODO: improve transaction management and remove this try/catch statement
+                this.logger.warn(err);
+            }
         }
-
-        return user; 
+        return user;
     }
 
     /**
@@ -55,6 +60,7 @@ export class UsersService {
      * @returns 
      */
     async saveOne(signUpUserDto: SignUpUserDto) {
+        this.logger.log(`Start saving new user: ${signUpUserDto.email}`)
         const existingUser: User = await this.findOne(signUpUserDto.email);
         let user: User = existingUser ? existingUser : new User();
 
@@ -73,6 +79,7 @@ export class UsersService {
         user.proposals = new Array();
         user.invitations = new Array();
         user.members = new Array();
+        user.nodes = new Array();
         
         return await this.saveWithNewAuthCode(user);
     } 
@@ -98,9 +105,9 @@ export class UsersService {
      * @returns 
      */
     private async verifyCodeAndActivateUser(user: User, authCode: string): Promise<any> {
+        const verify = await this.authCodeService.verifyCode(user, authCode);
         return await this.usersRepositoryService.getManager().transaction(
             async (transactionManager) => {
-                const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) {
                     const proposalId = await this.blockchainService.generateProposal(user);
                     user.proposals.push(await transactionManager.save(await this.blockchainService.getProposalById(proposalId)));
@@ -123,9 +130,9 @@ export class UsersService {
      * @returns 
      */
     private async verifyCodeAndActivateClientUser(user: User, authCode: string) {
+        const verify = await this.authCodeService.verifyCode(user, authCode);
         return await this.usersRepositoryService.getManager().transaction(
             async (transactionManager) => {
-                const verify = await this.authCodeService.verifyCode(user, authCode);
                 if (verify?.length > 0) {
                     await transactionManager.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
@@ -146,10 +153,6 @@ export class UsersService {
     async generateNewProposal(email: string) {
         this.logger.log(`Start generating new proposal for ${email}`);
         let user: User = await this.findOne(email); 
-        // if(user.proposals.filter(proposal => 
-        //     proposal.status == ProposalStatusEnum.APPROVED || proposal.status == ProposalStatusEnum.IN_PROGRESS).length > 0)
-        //     throw new HttpException('Unable to generate new Proposal', HttpStatus.FORBIDDEN);
-
         const proposalId = await this.blockchainService.generateProposal(user);
         const proposal = await this.blockchainService.getProposalById(proposalId);
         user.proposals.push(await this.usersRepositoryService.getManager().save(proposal));
@@ -178,18 +181,13 @@ export class UsersService {
      * @returns 
      */
     async createPeerNode(user: User): Promise<User> {
+        user = await this.usersRepositoryService.findOne(user.email);
         this.logger.log(`Start creation of Peer Node for AWS client ${user.awsClientId}`);
 
         user = await this.usersRepositoryService.findOne(user.email);
-        const node: Node = await this.noderepository.save(await this.blockchainService.createPeerNode(user));
-        user.members.forEach(async member => {
-            if(member.memberId == node.memberId) {
-                member.nodes.push(node);
-                await this.memberRepository.manager.update(Member, {memberId: member.memberId}, {nodes: member.nodes})
-            }
-        });
+        user.nodes.push(await this.noderepository.save(await this.blockchainService.createPeerNode(user)));
 
-        return await this.usersRepositoryService.findOne(user.email);
+        return await this.usersRepositoryService.getManager().save(user);
     }
 
     /**
@@ -300,7 +298,7 @@ export class UsersService {
             this.logger.warn(`No members was found for current AWS Client ID ${user.awsClientId}`);
             return members;
         }
-        return await this.usersRepositoryService.getManager().transaction(
+        await this.usersRepositoryService.getManager().transaction(
             async (transactionManager) => {
                 members.forEach(async el => {
                     if(user.members.filter(ui => ui.memberId == el.memberId).length > 0) {
@@ -312,9 +310,29 @@ export class UsersService {
                 });
                 this.logger.log(`Updated members for AWS Client ID ${user.awsClientId}`);
                 await transactionManager.release();
-                return user.members;
             }
         );
+        return user.members;
+    } 
+
+    private async updateNodes(user: User): Promise<Array<Node>> {
+        user = await this.usersRepositoryService.findOne(user.email);
+        this.logger.log(`Start updating nodes for AWS Client ID ${user.awsClientId}`);
+        
+        user.members?.forEach(async (member) => {
+            const nodes = await this.blockchainService.getAllPeerNodesByMemberId(member.memberId);
+            nodes.forEach(async (el) => {
+                if (user.nodes.filter(un => un.nodeId == el.nodeId).length > 0) {
+                    await this.usersRepositoryService.getManager().update(Node, { nodeId: el.nodeId }, { status: el.status });
+                } else {
+                    user.nodes.push(await this.noderepository.save(el));
+                    await this.usersRepositoryService.getManager().save(user);
+                }
+            });
+            this.logger.log(`Updated nodes for Member ID ${member.memberId}`);
+        });
+
+        return user.nodes;
     }
 
     /**

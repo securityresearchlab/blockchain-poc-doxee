@@ -6,6 +6,7 @@
 export type NodeDto = {
     nodeId: string;
     creationDate: string;
+    memberId: string;
     status: NodeDto.status;
 };
 

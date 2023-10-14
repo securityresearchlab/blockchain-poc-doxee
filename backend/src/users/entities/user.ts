@@ -3,6 +3,7 @@ import { AuthCode } from "../../auth-code/entities/auth-code";
 import { Proposal } from "src/blockchain/entities/proposal";
 import { Invitation } from "src/blockchain/entities/invitation";
 import { Member } from "src/blockchain/entities/member";
+import { Node } from "src/blockchain/entities/node";
 
 @Entity()
 export class User {
@@ -48,4 +49,8 @@ export class User {
     @OneToMany(type => Member, member => member.user)
     @JoinTable()
     members: Array<Member>;
+
+    @OneToMany(type => Node, node => node.user)
+    @JoinTable()
+    nodes: Array<Node>;
 }

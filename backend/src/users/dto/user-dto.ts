@@ -4,6 +4,7 @@ import { InvitationDto } from "./invitation-dto";
 import { ProposalDto } from "./proposal-dto";
 import { User } from "../entities/user";
 import { MemberDto } from "./member-dto";
+import { NodeDto } from "./node-dto";
 
 export class UserDto {
     @IsNotEmpty()
@@ -41,6 +42,10 @@ export class UserDto {
     @ApiProperty({type: [MemberDto], isArray: true})
     members: Array<MemberDto>;
 
+    @IsArray()
+    @ApiProperty({type: [NodeDto], isArray: true})
+    nodes: Array<NodeDto>;
+
     constructor(user: User) {
         this.name = user.name;
         this.surname = user.surname;
@@ -50,5 +55,6 @@ export class UserDto {
         this.proposals = user.proposals;
         this.invitations = user.invitations
         this.members = user.members;
+        this.nodes = user.nodes;
     }
 }

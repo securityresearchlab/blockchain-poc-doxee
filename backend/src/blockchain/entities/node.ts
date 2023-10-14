@@ -1,7 +1,6 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { Member } from "./member";
-import { NodeStatusEnum } from "./node-status-enum";
 import { User } from "src/users/entities/user";
+import { Column, CreateDateColumn, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { NodeStatusEnum } from "./node-status-enum";
 
 @Entity()
 export class Node {
@@ -24,10 +23,10 @@ export class Node {
     @JoinTable()
     user: User; 
 
-    constructor(nodeAwsObj: any) {
+    constructor(nodeAwsObj: any, memberId: string) {
         this.nodeId = nodeAwsObj?.["Id"];
         this.status = NodeStatusEnum[nodeAwsObj?.["Status"]];
         this.creationDate = new Date(nodeAwsObj?.["CreationDate"]);
-        this.memberId = nodeAwsObj?.["MemberId"];
+        this.memberId = memberId;
     }
 }

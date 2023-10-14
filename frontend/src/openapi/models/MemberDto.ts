@@ -9,7 +9,6 @@ export type MemberDto = {
     creationDate: string;
     isOwned: string;
     status: MemberDto.status;
-    nodes: Array<any>;
 };
 
 export namespace MemberDto {

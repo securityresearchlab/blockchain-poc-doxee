@@ -14,7 +14,7 @@ export class Member {
     @Column()
     name: string;
 
-    @Column()
+    @Column({nullable: true})
     descritpion: string;
 
     @Column({enum: MemberStatusEnum})
@@ -25,10 +25,6 @@ export class Member {
 
     @Column()
     isOwned: boolean;
-
-    @OneToMany(type => Node, node => node.nodeId)
-    @JoinTable()
-    nodes: Array<Node>;
     
     @ManyToOne(type => User, user => user.email)
     @JoinTable()
@@ -40,6 +36,6 @@ export class Member {
         this.descritpion = memberAwsObj?.["Description"];
         this.status = MemberStatusEnum[memberAwsObj?.["Status"]];
         this.creationDate = new Date(memberAwsObj?.["CreationDate"]);
-        this.isOwned = new Boolean(memberAwsObj?.["isOwned"]).valueOf();
+        this.isOwned = new Boolean(memberAwsObj?.["IsOwned"]).valueOf();
     }
 }

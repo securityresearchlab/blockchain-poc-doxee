@@ -8,6 +8,8 @@ import { Proposal } from './entities/proposal';
 import { Invitation } from './entities/invitation';
 import { Member } from './entities/member';
 import { Node } from './entities/node';
+import { InjectAwsService } from 'nest-aws-sdk';
+import { ManagedBlockchain } from 'aws-sdk';
 
 @Injectable()
 export class BlockchainService {
@@ -15,6 +17,8 @@ export class BlockchainService {
     private readonly SCRIPTS_PATH = path.join(process.cwd(), 'src', 'blockchain', 'scripts');
 
     constructor(
+        @InjectAwsService(ManagedBlockchain) 
+        private readonly managedBlockchain: ManagedBlockchain,
         private configService: ConfigService, 
         private mailService: MailService
     ) {}
@@ -98,17 +102,9 @@ export class BlockchainService {
      */
     async getAllInvitations(user: User): Promise<Array<Invitation>> {
         this.logger.log(`Start retrieving invitation list for AWS account ${user.awsClientId}`);
-        
-        const awsListInvitationsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListInvitations.sh');
-        return await executeBashSript(awsListInvitationsScriptPath, [], this.logger)
-            .then(response => {
-                const objResponse: Array<any> = JSON.parse(response)["Invitations"];
-                let invitations: Array<Invitation> = new Array();
-                objResponse.forEach(el => {
-                    invitations.push(new Invitation(el));
-                })
-                return invitations;
-            });
+       
+        return (await this.managedBlockchain.listInvitations().promise()).Invitations
+            .map(invitation => new Invitation(invitation));
     }
 
     /**
@@ -118,37 +114,47 @@ export class BlockchainService {
      */
     async getAllOwnedMembers(user: User): Promise<Array<Member>> {
         this.logger.log(`Start retrieving member list for AWS account ${user.awsClientId}`);
-
-        const awsListMembersScriptPath = path.join(this.SCRIPTS_PATH, 'awsListMembers.sh');
-        return await executeBashSript(awsListMembersScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger)
-            .then(response => {
-                const objResponse: Array<any> = JSON.parse(response)["Members"];
-                let members: Array<Member> = new Array();
-                objResponse.forEach(el => {
-                    const member = new Member(el);
-                    if(member.isOwned)
-                        members.push(member);
-                })
-                return members;
-            }).catch(error => {
-                throw new HttpException('Error during retrieving of members', HttpStatus.INTERNAL_SERVER_ERROR);
-            });
+        
+        try {
+            return (await this.managedBlockchain.listMembers({NetworkId: this.configService.get('AWS_NETWORK_ID')}).promise()).Members
+                .filter(member => member.IsOwned)
+                .map(member => new Member(member));
+        } catch (err) {
+            this.logger.warn(err);
+            return new Array();
+        }
     }
 
     /**
      * Retrieve all nodes for aws account and network configured
      * @param user 
      */
-    async getPeerNodeById(nodeId: string): Promise<Node> {
-        this.logger.log(`Start retrieving peer node with ID ${nodeId}`);
+    async getPeerNodeById(nodeId: string, memberId?: string): Promise<Node> {
+        this.logger.log(`Start retrieving peer node with ID ${nodeId} and member ID ${memberId}`);
 
-        const awsGetPeerNodeScriptPath = path.join(this.SCRIPTS_PATH, 'awsGetPeerNode.sh');
-        return await executeBashSript(awsGetPeerNodeScriptPath, [this.configService.get('AWS_NETWORK_ID'), nodeId], this.logger)
-            .then(response => {
-                return new Node(JSON.parse(response)["Node"]);
-            }).catch(error => {
-                throw new HttpException(`Error during retrieving of peer node ${nodeId}`, HttpStatus.INTERNAL_SERVER_ERROR);
-            });
+        return new Node((await this.managedBlockchain.getNode({
+            NodeId: nodeId, 
+            NetworkId: this.configService.get('AWS_NETWORK_ID'), 
+            MemberId: memberId
+        }).promise()).Node, memberId)
+    }
+
+    /**
+     * Retrieve all nodes of a member
+     * @param memberId 
+     * @returns 
+     */
+    async getAllPeerNodesByMemberId(memberId: string): Promise<Array<Node>> {
+        try {
+            return (await this.managedBlockchain.listNodes({
+                NetworkId: this.configService.get('AWS_NETWORK_ID'), 
+                MemberId: memberId
+            }).promise()).Nodes
+            .map(node => new Node(node, memberId));
+        } catch (err) {
+            this.logger.warn(err);
+            return new Array();
+        }
     }
 
     /**
@@ -156,30 +162,25 @@ export class BlockchainService {
      * @param user 
      */
     async acceptInvitationAndCreateMember(user: User): Promise<string> {
-        const proposal = user.proposals.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
         const invitation: Invitation = user.invitations.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
 
-        this.logger.log(`Start generating AWS Member | AwsClientId ${user.awsClientId} | ProposalId ${proposal.proposalId} | InvitationId ${invitation.invitationId}`);
+        this.logger.log(`Start generating AWS Member | AwsClientId ${user.awsClientId} | InvitationId ${invitation.invitationId}`);
 
-        const awsAcceptInvitationAndCreateMemberScriptPath = path.join(this.SCRIPTS_PATH, 'awsAcceptInvitationAndCreateMember.sh');
-        return await executeBashSript(
-            awsAcceptInvitationAndCreateMemberScriptPath, 
-            [
-                this.configService.get('AWS_NETWORK_ID'),
-                invitation.invitationId,
-                `Name=${user.organization + user.members.length + 1},FrameworkConfiguration={Fabric={AdminUsername=${user.name+user.surname},AdminPassword=AP_${user.id.substring(0, 8)}}}`
-            ], 
-            this.logger
-        ).then(response => {
-            if(response)  {
-                const memberId: string = JSON.parse(response)['MemberId'];
-                this.logger.log(`Successfully generated AWS Mmeber | AwsClientId ${user.awsClientId} | MemberId ${memberId}`);
-                return memberId;
-            }
-        }).catch(error => {
-            throw new HttpException('Error during the creation of memeber', HttpStatus.INTERNAL_SERVER_ERROR);
-        });
-        
+        return (await this.managedBlockchain.createMember({
+            ClientRequestToken: user.id,
+            InvitationId: invitation.invitationId, 
+            NetworkId: this.configService.get('AWS_NETWORK_ID'),
+            MemberConfiguration: {
+                Name: user.organization + user.members.length + 1,
+                Description: 'Member generated from doxee platform',
+                FrameworkConfiguration: {
+                    Fabric: {
+                        AdminUsername: user.name+user.surname,
+                        AdminPassword: 'AP_' + user.id.substring(0, 8)
+                    },
+                },
+            },
+        }).promise()).MemberId;
     }
 
     async createPeerNode(user: User): Promise<Node> {
@@ -188,24 +189,19 @@ export class BlockchainService {
         const member: Member = user.members?.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime()).at(0);
         this.logger.log(`Start creating AWS peer node | AwsClientId ${user.awsClientId} | MemberId ${member.memberId}`);
 
-        const awsCreatePeerNodeScriptPath = path.join(this.SCRIPTS_PATH, 'awsCreatePeerNode.sh');
-        return await executeBashSript(
-            awsCreatePeerNodeScriptPath, 
-            [
-                `{"InstanceType":"bc.t3.small","AvailabilityZone":"${this.configService.get('AWS_REGION')}"}`,
-                this.configService.get('AWS_NETWORK_ID'),
-                member.memberId,
-            ], 
-            this.logger
-        ).then(async response => {
-            if(response)  {
-                const nodeId: string = JSON.parse(response)['NodeId'];
-                this.logger.log(`Successfully generated AWS Peer Node | AwsClientId ${user.awsClientId} | MemberId ${member.memberId} | NodeId ${nodeId}`);
-                return await this.getPeerNodeById(nodeId);
-            }
-        }).catch(error => {
-            throw new HttpException('Error during the creation of peer node', HttpStatus.INTERNAL_SERVER_ERROR);
-        });
+
+        const nodeId = (await this.managedBlockchain.createNode({
+            ClientRequestToken: user.id,
+            NetworkId: this.configService.get('AWS_NETWORK_ID'),
+            NodeConfiguration: {
+                InstanceType: 'bc.t3.small',
+                AvailabilityZone: this.configService.get('AWS_REGION'),
+                StateDB: 'CouchDB'
+            },
+            MemberId: member.memberId,
+        }).promise()).NodeId;
+
+        return await this.getPeerNodeById(nodeId, member.memberId);
     }
 
 }

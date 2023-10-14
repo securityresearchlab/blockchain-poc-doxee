@@ -12,5 +12,6 @@ export type UserDto = {
     proposals: Array<any>;
     invitations: Array<any>;
     members: Array<any>;
+    nodes: Array<any>;
 };
 

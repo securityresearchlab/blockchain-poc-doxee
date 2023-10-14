@@ -1,8 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { InjectRepository } from "@nestjs/typeorm";
-import { User } from "./entities/user";
 import { Repository } from "typeorm";
-import { Node } from "src/blockchain/entities/node";
+import { User } from "./entities/user";
 
 @Injectable()
 export class UsersRepositoryService {
@@ -11,8 +10,6 @@ export class UsersRepositoryService {
     constructor(
         @InjectRepository(User)
         private usersRepository: Repository<User>,
-        @InjectRepository(Node)
-        private nodeRepository: Repository<Node>,
     ) {}
 
     async findOne(email: string): Promise<User> {
@@ -22,15 +19,11 @@ export class UsersRepositoryService {
                 proposals: true,
                 invitations: true,
                 members: true,
+                nodes: true,
             },
             where: {
                 email: email
             }
-        }).then(user => {
-            user.members?.forEach(async member => {
-                member.nodes.push(...await this.nodeRepository.find({where: {memberId: member.memberId}}))
-            })
-            return user;
         });
     }
 

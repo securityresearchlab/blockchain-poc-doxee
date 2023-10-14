@@ -1,6 +1,6 @@
 'use client';
 
-import { InvitationDto, MemberDto, UserDto, UsersService } from "@/openapi";
+import { InvitationDto, MemberDto, NodeDto, UserDto, UsersService } from "@/openapi";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import ClientInvitationAccept from "./ClientInvitationAccept";
@@ -47,6 +47,8 @@ export default function HomeClient() {
         UsersService.usersControllerAcceptInvitation()
             .then((res: UserDto) => { 
                 setUser(res);
+                setInvitation(res?.invitations?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
+                setMember(res.members?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
                 dispatch({
                     type: LOADER_VISIBLE,
                     visible: false,
@@ -71,6 +73,8 @@ export default function HomeClient() {
         UsersService.usersControllerCreatePeerNode()
             .then((res: UserDto) => { 
                 setUser(res);
+                setInvitation(res?.invitations?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
+                setMember(res.members?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0));
                 dispatch({
                     type: LOADER_VISIBLE,
                     visible: false,
@@ -94,21 +98,23 @@ export default function HomeClient() {
     return (
         <>
             <PopUpMessage serverity={popUpSeverity} title={popUpSeverity.toUpperCase()} message={popUpMessage} display={popUpDisplay}/>
-            {(invitation && !user?.members) &&
+            {(user?.nodes?.filter(el => el.status === NodeDto.status.AVAILABLE).length == 0 && invitation?.status == InvitationDto.status.PENDING) &&
                 <ClientInvitationAccept 
                     user={user} 
                     invitation={invitation}
                     handleLogout={handleLogout}
                     handleAcceptInvitation={handleAcceptInvitation}/>
             }
-            {(invitation?.status === InvitationDto.status.ACCEPTED && member) &&
+            {((invitation?.status == InvitationDto.status.ACCEPTING || invitation?.status == InvitationDto.status.ACCEPTED) && member && 
+                user?.nodes?.filter(el => el.status === NodeDto.status.AVAILABLE).length == 0) &&
                 <PeerNodeCreation 
                     user={user} 
+                    invitation={invitation}
                     member={member}
                     handleLogout={handleLogout}
                     handleCreatePeerNode={handleCreatePeerNode}/>
             }
-            {user?.members?.sort((a, b) => new Date(b.creationDate).getTime() - new Date(a.creationDate).getTime()).at(0)?.nodes.length > 0 &&
+            {user?.nodes?.filter(el => el.status === NodeDto.status.AVAILABLE) &&
                 <FileDisplay
                     user={user}
                     handleLogout={handleLogout}/> 

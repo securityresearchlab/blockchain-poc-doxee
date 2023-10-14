@@ -126,8 +126,10 @@ export default function LoginForm() {
                 {!verify && 
                     <form id="loginForm">
                         <p className="text-gray-500 text-sm font-light mb-8 whitespace-normal">Please login with your email to access the services</p>
-                        <TextField label="Email" onChange={setEmail}></TextField>
-                        <TextField label="Password" onChange={setPassword} password={true}></TextField>
+                        <div className="flex flex-col gap-2 w-full">
+                            <TextField label="Email" onChange={setEmail}></TextField>
+                            <TextField label="Password" onChange={setPassword} password={true}></TextField>
+                        </div>
                         <div className="flex flex-col gap-2 w-full mt-8">
                             <Button text="login" style="primary" onClick={handleLogin}/>
                             <span className="w-full text-center hover:text-sky-600 text-sky-800 underline" onClick={handleRegister}>

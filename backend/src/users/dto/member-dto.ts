@@ -24,16 +24,11 @@ export class MemberDto {
     @ApiProperty({enum: MemberStatusEnum})
     status: MemberStatusEnum;
 
-    @IsArray()
-    @ApiProperty({type: [NodeDto], isArray: true})
-    nodes: Array<NodeDto>;
-
     constructor(member: Member) {
         this.memberId = member.memberId;
         this.name = member.name;
         this.creationDate = member.creationDate;
         this.isOwned = member.isOwned;
         this.status = member.status;
-        this.nodes = member.nodes;
     }
 }
