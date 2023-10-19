@@ -203,5 +203,4 @@ export class BlockchainService {
 
         return await this.getPeerNodeById(nodeId, member.memberId);
     }
-
 }

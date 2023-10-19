@@ -2,7 +2,8 @@ import { Module } from '@nestjs/common';
 import { BlockchainService } from './blockchain.service';
 import { AwsSdkModule } from 'nest-aws-sdk';
 import { ConfigModule, ConfigService } from '@nestjs/config';
-import { EC2, EC2InstanceConnect, ManagedBlockchain } from 'aws-sdk';
+import { EC2, EC2InstanceConnect, ManagedBlockchain, SecretsManager } from 'aws-sdk';
+import { ChaincodeService } from './chiancode.service';
 
 @Module({
   imports: [
@@ -20,10 +21,11 @@ import { EC2, EC2InstanceConnect, ManagedBlockchain } from 'aws-sdk';
         EC2,
         EC2InstanceConnect,
         ManagedBlockchain,
+        SecretsManager,
       ]
     }),
   ],
-  providers: [BlockchainService],
-  exports: [BlockchainService]
+  providers: [BlockchainService, ChaincodeService],
+  exports: [BlockchainService, ChaincodeService]
 })
 export class BlockchainModule {}
