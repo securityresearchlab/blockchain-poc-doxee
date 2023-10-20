@@ -18,24 +18,101 @@ export class ChaincodeService {
 
     async query(user: User, args: Array<string>) {
         const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
-        const CHAINCODE_NAME = this.configService.get('CHAINCODE_NAME');
-
-        const request: FabricClient.ChaincodeQueryRequest = {
-            chaincodeId: CHAINCODE_NAME,
-            fcn: 'getAll',
-            args: args,
-        }
-        
+               
         const client = await this.getClient(user);
         const channel = client.getChannel(CHANNEL_NAME);
 
-        return channel.queryByChaincode(request)
+        return channel.queryByChaincode(this.composeRequest('getAll', args))
             .then(res => res[0].toString())
             .catch(err => {
                 this.logger.error(err);
                 throw err;
             })
 
+    }
+
+    async invoke(user: User, method: 'POST' | 'PUT' | 'DELETE', args: Array<string>) {
+        const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
+
+        let errorMessage;
+        let transactionId;
+        const request = this.composeRequest(method.toLowerCase(), args);
+        try {
+            const client = await this.getClient(user);
+            const channel = client.getChannel(CHANNEL_NAME);
+            transactionId = client.newTransactionID();
+            request.txId = transactionId;
+            request.targets = channel.getPeers().map(peer => peer.getPeer());
+
+            const proposalResults = await channel.sendTransactionProposal(request as FabricClient.ChaincodeInvokeRequest);
+
+            const [proposalResponsesObj, proposal] = proposalResults;
+            const proposalResponses = proposalResponsesObj as FabricClient.ProposalResponse[];
+            const proposalErrorResponses = proposalResponsesObj as FabricClient.ProposalErrorResponse[];
+
+            let successful = true;
+            for (let i = 0; i < proposalResponses.length; i += 1) {
+                if (!(proposalResponses[i].response && proposalResponses[i].response.status === 200)) {
+                    successful = false;
+                    break;
+                }
+            }
+
+            if (successful) {
+                const promises = [];
+                const eventHubs = channel.getChannelEventHubsForOrg();
+                eventHubs.forEach((eh) => {
+                  const invokeEventPromise = new Promise((resolve, reject) => {
+                    const eventTimeout = setTimeout(() => { eh.disconnect(); }, 10000);
+                    eh.registerTxEvent(transactionId.getTransactionID(), (tx, code) => {
+                      clearTimeout(eventTimeout);
+                      if (code !== 'VALID') {
+                        const message = `Invoke chaincode transaction was invalid with code of ${code}`;
+                        return reject(new Error(message));
+                      }
+                      const message = 'Invoke chaincode transaction was valid';
+                      return resolve(message);
+                    }, (err) => {
+                      clearTimeout(eventTimeout);
+                      reject(err);
+                    },
+                    { unregister: true, disconnect: true });
+                    eh.connect();
+                  });
+                  promises.push(invokeEventPromise);
+                });
+                
+                const ordererRequest: FabricClient.TransactionRequest = { txId: transactionId, proposalResponses, proposal };
+                promises.push(channel.sendTransaction(ordererRequest));
+                const ordererResponses = await Promise.all(promises);
+                const ordererResponse = ordererResponses.pop();
+                if (ordererResponse.status !== 'SUCCESS') {
+                  errorMessage = `Failed to order the transaction with code of ${ordererResponse.status}`;
+                }
+              } else {
+                errorMessage = `Failed to send proposal: ${proposalErrorResponses[0].message}`;
+              }
+        } catch (err) {
+            errorMessage = err.toString();
+        }
+
+        if (errorMessage) {
+            throw new Error(errorMessage);
+          }
+        
+          const txId = transactionId.getTransactionID();
+          console.info(`Successfully invoked ${request.fcn} on chaincode ${request.chaincodeId} for transaction ${txId}`);
+          return { transactionId: txId };
+
+    }
+
+    private composeRequest(fcn: string, args: Array<string>): FabricClient.ChaincodeQueryRequest | FabricClient.ChaincodeInvokeRequest {
+        const CHAINCODE_NAME = this.configService.get('CHAINCODE_NAME');
+        return {
+            chaincodeId: CHAINCODE_NAME,
+            fcn: fcn,
+            args: args,
+        }
     }
 
     private async getClient(user :User) {
