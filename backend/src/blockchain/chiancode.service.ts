@@ -5,6 +5,7 @@ import * as FabricClient from "fabric-client";
 import { InjectAwsService } from "nest-aws-sdk";
 import { User } from "src/users/entities/user";
 import { CONNECTION_PROFILE } from "./config/connectionProfile";
+import { TransactionDto } from "../chain-document/dto/transaction-dto";
 
 @Injectable()
 export class ChaincodeService {
@@ -23,18 +24,21 @@ export class ChaincodeService {
      * @returns 
      */
     async query(user: User, fcn: 'get'|'getAll', args: Array<string>): Promise<Array<Object>> {
-        const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
+      const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
+      this.logger.log(`Start query ${fcn} on channel: ${CHANNEL_NAME} with args: ${args}`);
                
-        const client = await this.getClient(user);
-        const channel = client.getChannel(CHANNEL_NAME);
+      const client = await this.getClient(user);
+      const channel = client.getChannel(CHANNEL_NAME);
 
-        return channel.queryByChaincode(this.composeRequest(fcn, args))
-            .then(res => JSON.parse(res[0].toString()))
-            .catch(err => {
-                this.logger.error(err);
-                throw err;
-            })
-
+      return channel.queryByChaincode(this.composeRequest(fcn, args))
+          .then(res => {
+            this.logger.debug(`Query response: ${JSON.stringify(res)}`);
+            return JSON.parse(res[0].toString());
+          })
+          .catch(err => {
+              this.logger.error(err);
+              throw err;
+          });
     }
 
     /**
@@ -44,8 +48,9 @@ export class ChaincodeService {
      * @param args 
      * @returns 
      */
-    async invoke(user: User, method: 'POST'|'PUT'|'DELETE', args: Array<string>): Promise<Object> {
+    async invoke(user: User, method: 'POST'|'PUT'|'DELETE', args: Array<string>): Promise<TransactionDto> {
         const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
+        this.logger.log(`Start invoke ${method} on channel: ${CHANNEL_NAME} with args: ${args}`);
 
         let errorMessage;
         let transactionId;
@@ -115,7 +120,7 @@ export class ChaincodeService {
         
           const txId = transactionId.getTransactionID();
           console.info(`Successfully invoked ${request.fcn} on chaincode ${request.chaincodeId} for transaction ${txId}`);
-          return { transactionId: txId };
+          return new TransactionDto(txId);
 
     }
 
@@ -135,17 +140,22 @@ export class ChaincodeService {
     }
 
     private async getClient(user :User) {
+        this.logger.log(`Start retrieving client of user ${user.id}`);
         const client = FabricClient.loadFromConfig(CONNECTION_PROFILE);
 
         const privateKeyPEM = await this.getSecret(this.configService.get("PRIVATE_KEY_ARN"));
         const signedCertPEM = await this.getSecret(this.configService.get("SIGNED_CERT_ARN"));
+        const memberId = user.members.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime())?.at(0).memberId;
+
+        this.logger.log(`Using member ${memberId} for user ${user.id}`);
 
         const userData = {
             username: 'admin',
-            mspid: user.members.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime())?.at(0).memberId,
+            mspid: memberId,
             cryptoContent: { privateKeyPEM, signedCertPEM },
             skipPersistence: true,
         };
+
         const chianUser = await client.createUser(userData);
         client.setUserContext(chianUser, true);
 
@@ -153,6 +163,7 @@ export class ChaincodeService {
     }
 
     private async getSecret(secretId) {
+        this.logger.log(`Start retrieving secret ${secretId}`);
         const secret = await this.secretsManager.getSecretValue({ SecretId: secretId }).promise();
         return secret.SecretString;
     }

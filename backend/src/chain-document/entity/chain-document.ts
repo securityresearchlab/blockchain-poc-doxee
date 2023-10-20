@@ -1,12 +1,10 @@
-import { Blob } from "buffer";
-
 export class ChainDocument {
     id: string;
     name: string;
-    buffer: Blob;
+    buffer: ArrayBuffer;
     uploadDate: Date;
 
-    constructor(partial: Partial<Object>) {
+    constructor(partial: Partial<any>) {
         Object.assign(this, partial);
     }
 }
