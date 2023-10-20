@@ -16,14 +16,20 @@ export class ChaincodeService {
         private configService: ConfigService, 
     ) {}
 
-    async query(user: User, args: Array<string>) {
+    /**
+     * Query items from channel
+     * @param user 
+     * @param args 
+     * @returns 
+     */
+    async query(user: User, fcn: 'get'|'getAll', args: Array<string>): Promise<Array<Object>> {
         const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
                
         const client = await this.getClient(user);
         const channel = client.getChannel(CHANNEL_NAME);
 
-        return channel.queryByChaincode(this.composeRequest('getAll', args))
-            .then(res => res[0].toString())
+        return channel.queryByChaincode(this.composeRequest(fcn, args))
+            .then(res => JSON.parse(res[0].toString()))
             .catch(err => {
                 this.logger.error(err);
                 throw err;
@@ -31,7 +37,14 @@ export class ChaincodeService {
 
     }
 
-    async invoke(user: User, method: 'POST' | 'PUT' | 'DELETE', args: Array<string>) {
+    /**
+     * Invoke chain code to create or delete items
+     * @param user 
+     * @param method 'POST' || 'PUT' || 'DELETE'
+     * @param args 
+     * @returns 
+     */
+    async invoke(user: User, method: 'POST'|'PUT'|'DELETE', args: Array<string>): Promise<Object> {
         const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
 
         let errorMessage;
@@ -106,6 +119,12 @@ export class ChaincodeService {
 
     }
 
+    /**
+     * Compose request to query or invoke the chaincode
+     * @param fcn query or invoke
+     * @param args 
+     * @returns 
+     */
     private composeRequest(fcn: string, args: Array<string>): FabricClient.ChaincodeQueryRequest | FabricClient.ChaincodeInvokeRequest {
         const CHAINCODE_NAME = this.configService.get('CHAINCODE_NAME');
         return {

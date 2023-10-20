@@ -5,4 +5,8 @@ export class ChainDocument {
     name: string;
     buffer: Blob;
     uploadDate: Date;
+
+    constructor(partial: Partial<Object>) {
+        Object.assign(this, partial);
+    }
 }

@@ -13,6 +13,8 @@ import { User } from './users/entities/user';
 import { UsersModule } from './users/users.module';
 import { Proposal } from './blockchain/entities/proposal';
 import { Invitation } from './blockchain/entities/invitation';
+import { ChainDocumentService } from './chain-document/chain-document.service';
+import { ChainDocumentModule } from './chain-document/chain-document.module';
 
 @Module({
   imports: [
@@ -39,6 +41,8 @@ import { Invitation } from './blockchain/entities/invitation';
     AuthCodeModule,
     MailModule,
     BlockchainModule,
+    ChainDocumentModule,
   ],
+  providers: [ChainDocumentService],
 })
 export class AppModule {}
