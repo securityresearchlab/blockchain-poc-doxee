@@ -21,6 +21,7 @@ async function bootstrap() {
       .setDescription("Doxee APIs to upload files into Hyperledger Fabric v2 blockchain")
       .setVersion("0")
       .addServer(serverUrl)
+      .addBearerAuth()
       .build()
   const swaggerDocument = SwaggerModule.createDocument(app, swaggerConfig);
   const swaggerMetadatas = (getFromContainer(MetadataStorage) as any).validationMetadatas;

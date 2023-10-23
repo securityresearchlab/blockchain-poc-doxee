@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Logger, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { ChainDocumentService } from './chain-document.service';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { ChainDocumentDto } from './dto/chain-document-dto';
@@ -17,6 +17,7 @@ export class ChainDocumentController {
 
     @Get('all')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiResponse({type: Array<ChainDocumentDto>, isArray: true})
     async getAll(@ReqUser() user: User): Promise<Array<ChainDocumentDto>> {
         try {
@@ -30,6 +31,7 @@ export class ChainDocumentController {
 
     @Get(':id')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiResponse({type: ChainDocumentDto})
     async getOneById(@ReqUser() user: User, @Param('id') id: string): Promise<ChainDocumentDto> {
         try {
@@ -43,6 +45,7 @@ export class ChainDocumentController {
 
     @Post('upload')
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiResponse({type: TransactionDto})
     async uploadChainDocument(@ReqUser() user: User, @Body() file: File): Promise<TransactionDto> {
         return await this.chainDocumentService.uploadDocument(user, file);

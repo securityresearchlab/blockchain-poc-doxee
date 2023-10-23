@@ -58,7 +58,8 @@ export class AuthCodeService {
         return this.authCodeRepository.save(authCode);
     }
 
-    async findValidAuthCodeByUser(): Promise<User[]> {
-        return await this.usersRepositoryService.findAll();
-    }
+    async findValidAuthCodeByUser(user: User): Promise<User[]> {
+        return (await this.usersRepositoryService.findAll()).filter(u => u.email == user.email);
+    };
 }
+

@@ -1,5 +1,5 @@
 import { Controller, Get, HttpException, HttpStatus, Logger, Post, UseGuards } from '@nestjs/common';
-import { ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { ReqUser } from './decorators/users.decorator';
 import { ProposalDto } from './dto/proposal-dto';
@@ -18,6 +18,7 @@ export class UsersController {
 
     @Get()
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiResponse({type: UserDto})
     async getUser(@ReqUser() user: User): Promise<UserDto> {
         return new UserDto(await this.usersService.findOne(user.email));
@@ -25,6 +26,7 @@ export class UsersController {
 
     @Get("generateNewProposal")
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiResponse({type: ProposalDto})
     async generateNewProposal(@ReqUser() user: User): Promise<ProposalDto> {
         return new ProposalDto(await this.usersService.generateNewProposal(user.email));
@@ -32,6 +34,7 @@ export class UsersController {
 
     @Post("acceptInvitation")
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiResponse({type: UserDto})
     async acceptInvitation(@ReqUser() user: User): Promise<UserDto> {
         try {
@@ -44,6 +47,7 @@ export class UsersController {
 
     @Post("createPeerNode")
     @UseGuards(JwtAuthGuard)
+    @ApiBearerAuth()
     @ApiResponse({type: UserDto})
     async createPeerNode(@ReqUser() user: User): Promise<UserDto> {
         try {

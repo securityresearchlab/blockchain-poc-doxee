@@ -5,6 +5,7 @@ import { ReasonEnum } from 'src/auth-code/entities/reason-enum';
 import { isMatch } from 'src/auth-code/utils/crypt-and-decrypt';
 import { MailService } from 'src/mail/mail.service';
 import { LoginUserDto } from 'src/users/dto/login-user-dto';
+import { UsersRepositoryService } from 'src/users/users.repository.service';
 import { UsersService } from 'src/users/users.service';
 
 @Injectable()
@@ -13,13 +14,14 @@ export class AuthService {
 
     constructor(
         private usersService: UsersService, 
+        private usersRepositoryService: UsersRepositoryService,
         private authCodeSerice: AuthCodeService,
         private mailService: MailService,
         private jwtService: JwtService
     ) {}
 
     async logIn(loginUserDto: LoginUserDto): Promise<any> {
-        const user = await this.usersService.findOne(loginUserDto.email);
+        const user = await this.usersRepositoryService.findOne(loginUserDto.email);
 
         // If user doesn't exists return OK, 
         // we don't want to give any information about our registered users.
