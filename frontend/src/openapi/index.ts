@@ -8,6 +8,7 @@ export { OpenAPI } from './core/OpenAPI';
 export type { OpenAPIConfig } from './core/OpenAPI';
 
 export type { ChainDocumentDto } from './models/ChainDocumentDto';
+export type { ChaindocumentUploadDto } from './models/ChaindocumentUploadDto';
 export { InvitationDto } from './models/InvitationDto';
 export type { LoginUserDto } from './models/LoginUserDto';
 export { MemberDto } from './models/MemberDto';

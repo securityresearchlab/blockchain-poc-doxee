@@ -1,6 +1,7 @@
 export class ChainDocument {
     id: string;
     name: string;
+    owner: string;
     buffer: ArrayBuffer;
     uploadDate: Date;
 

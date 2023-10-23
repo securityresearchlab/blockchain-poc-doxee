@@ -3,6 +3,7 @@
 /* tslint:disable */
 /* eslint-disable */
 import type { ChainDocumentDto } from '../models/ChainDocumentDto';
+import type { ChaindocumentUploadDto } from '../models/ChaindocumentUploadDto';
 import type { TransactionDto } from '../models/TransactionDto';
 
 import type { CancelablePromise } from '../core/CancelablePromise';
@@ -40,13 +41,18 @@ export class ChainDocumentsService {
     }
 
     /**
+     * @param requestBody
      * @returns TransactionDto
      * @throws ApiError
      */
-    public static chainDocumentControllerUploadChainDocument(): CancelablePromise<TransactionDto> {
+    public static chainDocumentControllerUploadChainDocument(
+        requestBody: ChaindocumentUploadDto,
+    ): CancelablePromise<TransactionDto> {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v0/secure/chain-document/upload',
+            body: requestBody,
+            mediaType: 'application/json',
         });
     }
 

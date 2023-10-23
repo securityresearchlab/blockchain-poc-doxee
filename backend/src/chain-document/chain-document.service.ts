@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { File } from 'buffer';
 import { randomUUID } from 'crypto';
 import { ChaincodeService } from 'src/blockchain/chiancode.service';
 import { TransactionDto } from 'src/chain-document/dto/transaction-dto';
 import { User } from 'src/users/entities/user';
 import { UsersService } from 'src/users/users.service';
 import { ChainDocument } from './entity/chain-document';
+import { ChaindocumentUploadDto } from './dto/chain-document-upload-dto';
 
 
 @Injectable()
@@ -31,13 +31,14 @@ export class ChainDocumentService {
             .map(doc => new ChainDocument(doc))?.at(0);
     }   
 
-    async uploadDocument(user: User, file: File): Promise<TransactionDto> {
+    async uploadDocument(user: User, chaindocumentUploadDto: ChaindocumentUploadDto, file: Express.Multer.File): Promise<TransactionDto> {
         user = await this.usersService.findOne(user.email);
-        this.logger.log(`Start uplaoding document ${file.name} for user ${user.id}`);
+        this.logger.log(`Start uplaoding document ${file.filename} for user ${user.id}`);
         let document = new ChainDocument({
             id: randomUUID(),
-            name: file.name,
-            buffer: file.arrayBuffer(),
+            name: file.filename,
+            owner: chaindocumentUploadDto.owner,
+            buffer: file.buffer,
             uploadDate: new Date(),
         });
         return (await this.chaincodeService.invoke(user, 'POST', [JSON.stringify(document)]))

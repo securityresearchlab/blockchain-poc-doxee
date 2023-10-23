@@ -1,12 +1,12 @@
-import { Body, Controller, Get, Logger, Param, Post, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { ChainDocumentService } from './chain-document.service';
+import { Body, Controller, Get, Logger, MaxFileSizeValidator, Param, ParseFilePipe, Post, UploadedFile, UseGuards } from '@nestjs/common';
+import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
-import { ChainDocumentDto } from './dto/chain-document-dto';
+import { TransactionDto } from 'src/chain-document/dto/transaction-dto';
 import { ReqUser } from 'src/users/decorators/users.decorator';
 import { User } from 'src/users/entities/user';
-import { TransactionDto } from 'src/chain-document/dto/transaction-dto';
-import { File } from 'buffer';
+import { ChainDocumentService } from './chain-document.service';
+import { ChainDocumentDto } from './dto/chain-document-dto';
+import { ChaindocumentUploadDto } from './dto/chain-document-upload-dto';
 
 @ApiTags("chain-documents")
 @Controller('/api/v0/secure/chain-document')
@@ -46,8 +46,16 @@ export class ChainDocumentController {
     @Post('upload')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
+    @ApiBody({type: ChaindocumentUploadDto})
     @ApiResponse({type: TransactionDto})
-    async uploadChainDocument(@ReqUser() user: User, @Body() file: File): Promise<TransactionDto> {
-        return await this.chainDocumentService.uploadDocument(user, file);
+    async uploadChainDocument(
+        @ReqUser() user: User, 
+        @Body() chaindocumentUploadDto: ChaindocumentUploadDto, 
+        @UploadedFile(new ParseFilePipe({
+            validators: [
+                new MaxFileSizeValidator({maxSize: 10000}),
+            ]
+        })) file: Express.Multer.File) : Promise<TransactionDto> {
+            return await this.chainDocumentService.uploadDocument(user, chaindocumentUploadDto, file);
     }
 }

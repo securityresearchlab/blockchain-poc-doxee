@@ -12,10 +12,6 @@ import { useDispatch } from "react-redux";
 import { LOADER_VISIBLE } from "@/reducers/actions";
 
 export default function SignUpForm() {
-    const emaiEexpression: RegExp = /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i;
-    const orgExpression: RegExp = /^(?!-|[0-9])(?!.*-$)(?!.*?--)[a-zA-Z0-9-]+$/i;
-    const nameExpression: RegExp = /^[a-zA-Z][a-zA-Z0-9]*$/i;
-
     const router = useRouter();
     const dispatch = useDispatch();
 
