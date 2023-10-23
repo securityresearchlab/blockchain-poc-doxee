@@ -18,7 +18,7 @@ export default function UploadForm() {
     const router = useRouter();
     const dispatch = useDispatch();
 
-    const [owner, setOwner] = useState<string>();
+    const [owner, setOwner] = useState<string>('');
     const [file, setFile] = useState<File>();
     const [popUpDisplay, setPopUpDisplay] = useState<boolean>(false);
     const [popUpSeverity, setPopUpSeverity] = useState<'error' | 'warning' | 'success' | 'info'>('info');
@@ -56,7 +56,9 @@ export default function UploadForm() {
                 type: LOADER_VISIBLE,
                 visible: true,
             });
-            ChainDocumentsService.chainDocumentControllerUploadChainDocument()
+            ChainDocumentsService.chainDocumentControllerUploadChainDocument({
+                    owner: owner,
+                })
                 .then(res => {
                     setPopUpMessage("File caricato correttamente");
                     setPopUpSeverity('success');
