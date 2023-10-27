@@ -26,7 +26,7 @@ export default function FileSelect({...props}: Props) {
                         </svg>
                         <p className="mb-2 text-sm text-gray-500 dark:text-gray-400"><span className="font-semibold">Click to upload</span> or drag and drop</p>
                         <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">PDF, XML (MAX. 10KB)</p>
-                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">{file ? file.name + " (" + Math.round(file.size / 1000) + "Kb)" : ""}</p>
+                        <p className="text-sm font-semibold text-gray-500 dark:text-gray-400">{file ? file.name + " (" + Math.round(file.size / 1000) + "KB)" : ""}</p>
                     </div>
                     <input id="dropzone-file" type="file" className="hidden" onChange={handleFileSelect}/>
                 </label>
