@@ -15,7 +15,7 @@ fi
 #     \"ProposalId\": \"p-AFHKEZXKF5GSXKFDR7UJC72YRI\"
 # }"
 
-ssh -i ${PWD}/src/blockchain/scripts/certs/blockchain_poc.pem centos@10.228.63.11 \
+ssh -i ${PWD}/src/blockchain/certs/blockchain_poc.pem centos@10.228.63.11 \
 aws managedblockchain create-proposal \
 --actions Invitations=[{Principal=$1}] \
 --network-id $2 \

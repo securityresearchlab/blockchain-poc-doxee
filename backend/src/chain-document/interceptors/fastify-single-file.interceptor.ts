@@ -3,6 +3,12 @@ import FastifyMulter from 'fastify-multer';
 import { Multer, Options } from "multer";
 import { Observable } from "rxjs";
 
+/**
+ * Interceptor for a single file upload
+ * @param fieldName 
+ * @param localOptions 
+ * @returns 
+ */
 export function FastifySingleFileInterceptor(fieldName: string, localOptions: Options): Type<NestInterceptor> {
     type MulterInstance = any;
     class MixinInterceptor implements NestInterceptor {

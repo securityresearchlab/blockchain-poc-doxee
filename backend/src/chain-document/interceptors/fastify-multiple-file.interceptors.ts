@@ -3,6 +3,13 @@ import FastifyMulter from 'fastify-multer';
 import { Multer, Options } from "multer";
 import { Observable } from "rxjs";
 
+/**
+ * Interceptor for multiple file upload
+ * @param fieldName 
+ * @param localOptions 
+ * @param maxCount 
+ * @returns 
+ */
 export function FastifyMultipleFileInterceptor(fieldName: string, localOptions: Options, maxCount?: number): Type<NestInterceptor> {
     type MulterInstance = any;
     class MixinInterceptor implements NestInterceptor {

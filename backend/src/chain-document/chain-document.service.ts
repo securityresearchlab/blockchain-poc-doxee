@@ -6,7 +6,6 @@ import { User } from 'src/users/entities/user';
 import { UsersService } from 'src/users/users.service';
 import { ChaindocumentUploadDto } from './dto/chain-document-upload-dto';
 import { ChainDocument } from './entity/chain-document';
-import { File } from 'buffer';
 
 
 @Injectable()
@@ -32,17 +31,17 @@ export class ChainDocumentService {
             .map(doc => new ChainDocument(doc))?.at(0);
     }   
 
-    async uploadDocument(user: User, chaindocumentUploadDto: ChaindocumentUploadDto): Promise<TransactionDto> {
+    async uploadDocument(user: User, chaindocumentUploadDto: ChaindocumentUploadDto, file: Express.Multer.File): Promise<TransactionDto> {
         user = await this.usersService.findOne(user.email);
-        // const file: File = chaindocumentUploadDto.file as File;
-        // this.logger.log(`Start uplaoding document ${file.name} for user ${user.id}`);
-        // let document = new ChainDocument({
-        //     id: randomUUID(),
-        //     name: file.name,
-        //     owner: chaindocumentUploadDto.owner,
-        //     buffer: await file.arrayBuffer(),
-        //     uploadDate: new Date(),
-        // });
+        this.logger.log(`Start uplaoding document ${file.originalname} for user ${user.id}`);
+        let document = new ChainDocument({
+            id: randomUUID(),
+            name: file.originalname,
+            owner: chaindocumentUploadDto.owner,
+            url: chaindocumentUploadDto.url,
+            buffer: file.buffer,
+            uploadDate: new Date(),
+        });
         return (await this.chaincodeService.invoke(user, 'POST', [JSON.stringify(document)]))
     }
 }

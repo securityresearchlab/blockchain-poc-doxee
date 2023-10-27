@@ -2,14 +2,17 @@ import { Injectable, Logger } from "@nestjs/common";
 import { ConfigService } from "@nestjs/config";
 import { SecretsManager } from "aws-sdk";
 import * as FabricClient from "fabric-client";
+import * as fs from 'fs';
 import { InjectAwsService } from "nest-aws-sdk";
+import * as path from 'path';
 import { User } from "src/users/entities/user";
-import { CONNECTION_PROFILE } from "./config/connectionProfile";
 import { TransactionDto } from "../chain-document/dto/transaction-dto";
+import { composeConnectionProfile } from "./config/connectionProfile";
 
 @Injectable()
 export class ChaincodeService {
     private readonly logger = new Logger(ChaincodeService.name);
+    private readonly CERTS_PATH = path.join(process.cwd(), 'src', 'blockchain', 'certs');
 
     constructor(
         @InjectAwsService(SecretsManager)
@@ -64,6 +67,8 @@ export class ChaincodeService {
 
             const proposalResults = await channel.sendTransactionProposal(request as FabricClient.ChaincodeInvokeRequest);
 
+            this.logger.log(JSON.stringify(proposalResults));
+
             const [proposalResponsesObj, proposal] = proposalResults;
             const proposalResponses = proposalResponsesObj as FabricClient.ProposalResponse[];
             const proposalErrorResponses = proposalResponsesObj as FabricClient.ProposalErrorResponse[];
@@ -115,13 +120,12 @@ export class ChaincodeService {
         }
 
         if (errorMessage) {
-            throw new Error(errorMessage);
-          }
-        
-          const txId = transactionId.getTransactionID();
-          console.info(`Successfully invoked ${request.fcn} on chaincode ${request.chaincodeId} for transaction ${txId}`);
-          return new TransactionDto(txId);
-
+          throw new Error(errorMessage);
+        }
+      
+        const txId = transactionId.getTransactionID();
+        console.info(`Successfully invoked ${request.fcn} on chaincode ${request.chaincodeId} for transaction ${txId}`);
+        return new TransactionDto(txId);
     }
 
     /**
@@ -141,11 +145,21 @@ export class ChaincodeService {
 
     private async getClient(user :User) {
         this.logger.log(`Start retrieving client of user ${user.id}`);
-        const client = FabricClient.loadFromConfig(CONNECTION_PROFILE);
+        const connectionProfile = composeConnectionProfile(
+          this.configService.get('MEMBER_ID'),
+          this.configService.get('CA_ENDPOINT'),
+          this.configService.get('ORDERER_ENDPOINT'),
+          this.configService.get('PEER_ENDPOINT'),
+          path.join(this.CERTS_PATH, 'managedblockchain-tls-chain.pem')
+        );
+        const client = FabricClient.loadFromConfig(connectionProfile);
 
-        const privateKeyPEM = await this.getSecret(this.configService.get("PRIVATE_KEY_ARN"));
-        const signedCertPEM = await this.getSecret(this.configService.get("SIGNED_CERT_ARN"));
-        const memberId = user.members.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime())?.at(0).memberId;
+        // const privateKeyPEM = await this.getSecret(this.configService.get("PRIVATE_KEY_ARN"));
+        // const signedCertPEM = await this.getSecret(this.configService.get("SIGNED_CERT_ARN"));
+        // const memberId = user.members.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime())?.at(0).memberId;
+        const privateKeyPEM = fs.readFileSync(path.join(this.CERTS_PATH, 'admin_cert.pem'), 'utf-8');
+        const signedCertPEM = fs.readFileSync(path.join(this.CERTS_PATH, 'sign_cert.pem'), 'utf-8');
+        const memberId = this.configService.get('MEMBER_ID');
 
         this.logger.log(`Using member ${memberId} for user ${user.id}`);
 
@@ -162,6 +176,11 @@ export class ChaincodeService {
         return client;
     }
 
+    /**
+     * Funciton used to retrieve secrets from AWS Secrets Manager
+     * @param secretId 
+     * @returns 
+     */
     private async getSecret(secretId) {
         this.logger.log(`Start retrieving secret ${secretId}`);
         const secret = await this.secretsManager.getSecretValue({ SecretId: secretId }).promise();
