@@ -6,9 +6,18 @@ import { MetadataStorage, getFromContainer } from 'class-validator';
 import { validationMetadatasToSchemas } from 'class-validator-jsonschema';
 import { writeFileSync } from 'fs';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import fastifyHelmet from '@fastify/helmet';
+import { CONTENT_SECURITY_POLICY } from './config/content-security-policy';
+import { contentParser } from 'fastify-multer';
+import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({logger: true}), {cors: true});
+
+  // File Upload configuration
+  app.register(fastifyHelmet, CONTENT_SECURITY_POLICY);
+  app.register(contentParser);
+  app.useStaticAssets({root: join(__dirname, './uploads')})
 
   const configService = app.get(ConfigService);
   // Import server configuration

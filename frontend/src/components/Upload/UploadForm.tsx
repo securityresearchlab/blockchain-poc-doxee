@@ -1,18 +1,17 @@
 'use client';
 
-import { useEffect, useState } from "react";
-import Container from "../Container/Container";
-import Logo from "../Logo/Logo";
-import TextField from "../TextField/TextField";
-import Button from "../Button/Button";
-import { useRouter } from "next/navigation";
-import FileSelect from "./FileSelect";
-import { File } from "buffer";
-import PopUpMessage from "../PopUpMessage/PopUpMessage";
-import { JwtUtilities } from "@/utils/jwtUtilities";
 import { ChainDocumentsService } from "@/openapi";
 import { LOADER_VISIBLE } from "@/reducers/actions";
+import { JwtUtilities } from "@/utils/jwtUtilities";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import Button from "../Button/Button";
+import Container from "../Container/Container";
+import Logo from "../Logo/Logo";
+import PopUpMessage from "../PopUpMessage/PopUpMessage";
+import TextField from "../TextField/TextField";
+import FileSelect from "./FileSelect";
 
 export default function UploadForm() {
     const router = useRouter();
@@ -58,11 +57,18 @@ export default function UploadForm() {
             });
             ChainDocumentsService.chainDocumentControllerUploadChainDocument({
                     owner: owner,
+                    file: file
                 })
                 .then(res => {
                     setPopUpMessage("File caricato correttamente");
                     setPopUpSeverity('success');
                     setPopUpDisplay(true);
+                    setOwner('');
+                    setFile(undefined);
+                    dispatch({
+                        type: LOADER_VISIBLE,
+                        visible: false,
+                    });
                 })
                 .catch(err => {
                     setPopUpMessage("Error during signUp: " + err.body.message);
@@ -73,7 +79,6 @@ export default function UploadForm() {
                         visible: false,
                     });
                 })
-            alert("Upload file " + file?.name + " for " + owner);
         } else {
             setPopUpMessage("Selezionare un file procedere");
             setPopUpSeverity('warning');

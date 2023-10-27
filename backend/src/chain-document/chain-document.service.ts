@@ -4,8 +4,9 @@ import { ChaincodeService } from 'src/blockchain/chiancode.service';
 import { TransactionDto } from 'src/chain-document/dto/transaction-dto';
 import { User } from 'src/users/entities/user';
 import { UsersService } from 'src/users/users.service';
-import { ChainDocument } from './entity/chain-document';
 import { ChaindocumentUploadDto } from './dto/chain-document-upload-dto';
+import { ChainDocument } from './entity/chain-document';
+import { File } from 'buffer';
 
 
 @Injectable()
@@ -31,16 +32,17 @@ export class ChainDocumentService {
             .map(doc => new ChainDocument(doc))?.at(0);
     }   
 
-    async uploadDocument(user: User, chaindocumentUploadDto: ChaindocumentUploadDto, file: Express.Multer.File): Promise<TransactionDto> {
+    async uploadDocument(user: User, chaindocumentUploadDto: ChaindocumentUploadDto): Promise<TransactionDto> {
         user = await this.usersService.findOne(user.email);
-        this.logger.log(`Start uplaoding document ${file.filename} for user ${user.id}`);
-        let document = new ChainDocument({
-            id: randomUUID(),
-            name: file.filename,
-            owner: chaindocumentUploadDto.owner,
-            buffer: file.buffer,
-            uploadDate: new Date(),
-        });
+        // const file: File = chaindocumentUploadDto.file as File;
+        // this.logger.log(`Start uplaoding document ${file.name} for user ${user.id}`);
+        // let document = new ChainDocument({
+        //     id: randomUUID(),
+        //     name: file.name,
+        //     owner: chaindocumentUploadDto.owner,
+        //     buffer: await file.arrayBuffer(),
+        //     uploadDate: new Date(),
+        // });
         return (await this.chaincodeService.invoke(user, 'POST', [JSON.stringify(document)]))
     }
 }

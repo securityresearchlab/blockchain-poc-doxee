@@ -1,5 +1,7 @@
-import { Body, Controller, Get, Logger, MaxFileSizeValidator, Param, ParseFilePipe, Post, UploadedFile, UseGuards } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Body, Controller, Get, Logger, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { ApiBearerAuth, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Request } from 'express';
+import { diskStorage } from 'multer';
 import { JwtAuthGuard } from 'src/auth/guard/jwt-auth.guard';
 import { TransactionDto } from 'src/chain-document/dto/transaction-dto';
 import { ReqUser } from 'src/users/decorators/users.decorator';
@@ -7,6 +9,10 @@ import { User } from 'src/users/entities/user';
 import { ChainDocumentService } from './chain-document.service';
 import { ChainDocumentDto } from './dto/chain-document-dto';
 import { ChaindocumentUploadDto } from './dto/chain-document-upload-dto';
+import { FastifySingleFileInterceptor } from './interceptors/fastify-single-file.interceptor';
+import { editFileName, fileFilter } from './utils/file-upload.util';
+import { fileMapper } from './mapper/file.mapper';
+import { ChainDocumentBody } from './decorators/chain-document-body.decorator';
 
 @ApiTags("chain-documents")
 @Controller('/api/v0/secure/chain-document')
@@ -44,18 +50,26 @@ export class ChainDocumentController {
 
 
     @Post('upload')
+    @ApiConsumes('multipart/form-data')
     @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
-    @ApiBody({type: ChaindocumentUploadDto})
+    @UseInterceptors(FastifySingleFileInterceptor('file', {
+        storage: diskStorage({
+            destination: '../uploads',
+            filename: editFileName,
+        }),
+        fileFilter: fileFilter,
+    }))
+    @ChainDocumentBody()
     @ApiResponse({type: TransactionDto})
     async uploadChainDocument(
         @ReqUser() user: User, 
-        @Body() chaindocumentUploadDto: ChaindocumentUploadDto, 
-        @UploadedFile(new ParseFilePipe({
-            validators: [
-                new MaxFileSizeValidator({maxSize: 10000}),
-            ]
-        })) file: Express.Multer.File) : Promise<TransactionDto> {
-            return await this.chainDocumentService.uploadDocument(user, chaindocumentUploadDto, file);
+        @Req() req: Request, 
+        @UploadedFile() file: Express.Multer.File, 
+        @Body() chainDocumentUploadDto: ChaindocumentUploadDto) : Promise<TransactionDto> {
+            chainDocumentUploadDto.url = fileMapper({file, req}).url;
+            this.logger.log(`Received file: ${file.originalname} - ${file.size}`);
+            return new TransactionDto('OK');
+            // return await this.chainDocumentService.uploadDocument(user, chaindocumentUploadDto);
     }
 }
