@@ -12,6 +12,17 @@ import { request as __request } from '../core/request';
 export class ChainDocumentsService {
 
     /**
+     * @returns any
+     * @throws ApiError
+     */
+    public static chainDocumentControllerInit(): CancelablePromise<any> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v0/secure/chain-document/init',
+        });
+    }
+
+    /**
      * @returns any[]
      * @throws ApiError
      */

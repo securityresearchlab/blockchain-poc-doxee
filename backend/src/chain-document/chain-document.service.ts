@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
 import { ChaincodeService } from 'src/blockchain/chiancode.service';
 import { TransactionDto } from 'src/chain-document/dto/transaction-dto';
@@ -16,6 +16,15 @@ export class ChainDocumentService {
         private chaincodeService: ChaincodeService,
         private usersService: UsersService,
     ) {}
+
+    async init(): Promise<void> {
+        try {
+            await this.chaincodeService.installChaincode('documents');
+        } catch (err) {
+            this.logger.warn(err);
+            throw new HttpException('Error during chaincode init', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
     async findAll(user: User): Promise<Array<ChainDocument>> {
         user = await this.usersService.findOne(user.email);

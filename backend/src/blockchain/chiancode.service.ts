@@ -8,17 +8,56 @@ import * as path from 'path';
 import { User } from "src/users/entities/user";
 import { TransactionDto } from "../chain-document/dto/transaction-dto";
 import { composeConnectionProfile } from "./config/connectionProfile";
+import { executeBashScriptSpawn, executeBashSript } from "./utils";
 
 @Injectable()
 export class ChaincodeService {
     private readonly logger = new Logger(ChaincodeService.name);
-    private readonly CERTS_PATH = path.join(process.cwd(), 'src', 'blockchain', 'certs');
+    private readonly BASE_PATH = path.join(process.cwd(), 'src', 'blockchain');
+    private readonly CERTS_PATH = path.join(this.BASE_PATH, 'certs');
+    private readonly SCRIPTS_PATH = path.join(this.BASE_PATH, 'scripts');
+    private readonly SMART_CONTRACTS_PATH = path.join(this.BASE_PATH, 'smart-contracts');
 
     constructor(
         @InjectAwsService(SecretsManager)
         private readonly secretsManager: SecretsManager,
         private configService: ConfigService, 
     ) {}
+
+
+    async installChaincode(chaincodeName: string) {
+      // Copy smart contract folder inside peer node
+      await this.transferSmartContract(chaincodeName);
+      
+      // Start chaincode installation
+      this.logger.log(`Start installation of chain code ${chaincodeName}`);
+      const executeConfigureChaincodeRemoteScriptPath = path.join(this.SCRIPTS_PATH, 'execute-config-chiancode-remote.sh');
+      await executeBashScriptSpawn(
+        executeConfigureChaincodeRemoteScriptPath,
+        [
+          this.configService.get('AWS_NETWORK_ID'),
+          this.configService.get('MEMBER_ID'),
+          this.configService.get('NODE_ID'),
+          this.configService.get('ORDERER_ENDPOINT'),
+          this.configService.get('PEER_ENDPOINT'),
+        ],
+        this.logger
+      );
+    }
+
+    private async transferSmartContract(chaincodeName: string) {
+      this.logger.log(`Start transfer of smart contract ${chaincodeName}`);
+
+      const transferSmartContractScriptPath = path.join(this.SCRIPTS_PATH, 'transfer-smart-contract.sh');
+      await executeBashSript(
+        transferSmartContractScriptPath,
+        [
+          chaincodeName,
+          path.join(this.SMART_CONTRACTS_PATH, chaincodeName),
+        ],
+        this.logger
+      );
+    }
 
     /**
      * Query items from channel
@@ -58,20 +97,22 @@ export class ChaincodeService {
         let errorMessage;
         let transactionId;
         const request = this.composeRequest(method.toLowerCase(), args);
+        const client = await this.getClient(user);
+        const channel = client.getChannel(CHANNEL_NAME);
+        transactionId = client.newTransactionID();
+        request.txId = transactionId;
+        request.targets = channel.getPeers().map(peer => peer.getPeer());
+
+        this.logger.log(`Request: ${JSON.stringify(request)}`)
+        
+        const proposalResults = await channel.sendTransactionProposal(request as FabricClient.ChaincodeInvokeRequest);
+        
+        this.logger.log('Proposal results: ', JSON.stringify(proposalResults));
         try {
-            const client = await this.getClient(user);
-            const channel = client.getChannel(CHANNEL_NAME);
-            transactionId = client.newTransactionID();
-            request.txId = transactionId;
-            request.targets = channel.getPeers().map(peer => peer.getPeer());
-
-            const proposalResults = await channel.sendTransactionProposal(request as FabricClient.ChaincodeInvokeRequest);
-
-            this.logger.log(JSON.stringify(proposalResults));
-
-            const [proposalResponsesObj, proposal] = proposalResults;
-            const proposalResponses = proposalResponsesObj as FabricClient.ProposalResponse[];
-            const proposalErrorResponses = proposalResponsesObj as FabricClient.ProposalErrorResponse[];
+        
+          const [proposalResponsesObj, proposal] = proposalResults;
+          const proposalResponses = proposalResponsesObj as FabricClient.ProposalResponse[];
+          const proposalErrorResponses = proposalResponsesObj as FabricClient.ProposalErrorResponse[];
 
             let successful = true;
             for (let i = 0; i < proposalResponses.length; i += 1) {
@@ -137,9 +178,9 @@ export class ChaincodeService {
     private composeRequest(fcn: string, args: Array<string>): FabricClient.ChaincodeQueryRequest | FabricClient.ChaincodeInvokeRequest {
         const CHAINCODE_NAME = this.configService.get('CHAINCODE_NAME');
         return {
-            chaincodeId: CHAINCODE_NAME,
-            fcn: fcn,
-            args: args,
+          chaincodeId: CHAINCODE_NAME,
+          fcn: fcn,
+          args: args,
         }
     }
 
@@ -153,25 +194,25 @@ export class ChaincodeService {
           path.join(this.CERTS_PATH, 'managedblockchain-tls-chain.pem')
         );
         const client = FabricClient.loadFromConfig(connectionProfile);
-
         // const privateKeyPEM = await this.getSecret(this.configService.get("PRIVATE_KEY_ARN"));
         // const signedCertPEM = await this.getSecret(this.configService.get("SIGNED_CERT_ARN"));
         // const memberId = user.members.sort((a, b) => b.creationDate.getTime() - a.creationDate.getTime())?.at(0).memberId;
-        const privateKeyPEM = fs.readFileSync(path.join(this.CERTS_PATH, 'admin_cert.pem'), 'utf-8');
-        const signedCertPEM = fs.readFileSync(path.join(this.CERTS_PATH, 'sign_cert.pem'), 'utf-8');
+        const privateKeyPEM = fs.readFileSync(path.join(this.CERTS_PATH, 'private_key')).toString();
+        const signedCertPEM = fs.readFileSync(path.join(this.CERTS_PATH, 'sign_cert.pem')).toString();
         const memberId = this.configService.get('MEMBER_ID');
 
-        this.logger.log(`Using member ${memberId} for user ${user.id}`);
-
-        const userData = {
+        const userData: FabricClient.UserOpts = {
             username: 'admin',
             mspid: memberId,
-            cryptoContent: { privateKeyPEM, signedCertPEM },
+            cryptoContent: { 
+              privateKeyPEM: privateKeyPEM, 
+              signedCertPEM: signedCertPEM 
+            },
             skipPersistence: true,
         };
 
-        const chianUser = await client.createUser(userData);
-        client.setUserContext(chianUser, true);
+        const chainUser = await client.createUser(userData);
+        client.setUserContext(chainUser, true);
 
         return client;
     }

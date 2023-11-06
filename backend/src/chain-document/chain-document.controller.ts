@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Logger, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Param, Post, Req, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
 import { ApiBearerAuth, ApiConsumes, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { diskStorage } from 'multer';
@@ -21,9 +21,16 @@ export class ChainDocumentController {
 
     constructor(private chainDocumentService: ChainDocumentService) {}
 
-    @Get('all')
-    @UseGuards(JwtAuthGuard)
+    @Post('init')
     @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    async init(): Promise<void> {
+        return await this.chainDocumentService.init();
+    }
+
+    @Get('all')
+    @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiResponse({type: Array<ChainDocumentDto>, isArray: true})
     async getAll(@ReqUser() user: User): Promise<Array<ChainDocumentDto>> {
         try {
@@ -36,8 +43,8 @@ export class ChainDocumentController {
     }
 
     @Get(':id')
-    @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
     @ApiResponse({type: ChainDocumentDto})
     async getOneById(@ReqUser() user: User, @Param('id') id: string): Promise<ChainDocumentDto> {
         try {
@@ -50,9 +57,10 @@ export class ChainDocumentController {
 
 
     @Post('upload')
-    @ApiConsumes('multipart/form-data')
-    @UseGuards(JwtAuthGuard)
     @ApiBearerAuth()
+    @UseGuards(JwtAuthGuard)
+    @ApiConsumes('multipart/form-data')
+    @ChainDocumentBody()
     @UseInterceptors(FastifySingleFileInterceptor('file', {
         storage: diskStorage({
             destination: '../uploads',
@@ -60,7 +68,6 @@ export class ChainDocumentController {
         }),
         fileFilter: fileFilter,
     }))
-    @ChainDocumentBody()
     @ApiResponse({type: TransactionDto})
     async uploadChainDocument(
         @ReqUser() user: User, 
