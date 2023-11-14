@@ -1,15 +1,13 @@
-import { HttpException, HttpStatus, Logger } from "@nestjs/common";
+import { Logger } from "@nestjs/common";
 import { execFile, spawn } from "child_process";
 
 export async function executeBashSript(command: string, args: Array<string>, logger: Logger): Promise<string> {
     return new Promise((resolve, reject) => {
         execFile(command, args, (err, stdout, stderr) => {
-            if (err) {
+            if (err) 
                 handleReject(reject, err, logger);
-            }
-            if (stdout) {
+            if (stdout) 
                 handleResolve(resolve, err, logger);
-            }
             if (stderr)
                 logger.warn(stderr);
             resolve(undefined);

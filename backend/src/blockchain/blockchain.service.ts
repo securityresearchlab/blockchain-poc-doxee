@@ -183,6 +183,11 @@ export class BlockchainService {
         }).promise()).MemberId;
     }
 
+    /**
+     * Creates peer node inside last generated member
+     * @param user 
+     * @returns 
+     */
     async createPeerNode(user: User): Promise<Node> {
         if(user.members.length < 1)
             throw new HttpException('Cannot create a peer node without a member', HttpStatus.CONFLICT);
