@@ -111,6 +111,7 @@ export default function HomeClient() {
                     user={user} 
                     invitation={invitation}
                     member={member}
+                    nodes={user.nodes}
                     handleLogout={handleLogout}
                     handleCreatePeerNode={handleCreatePeerNode}/>
             }

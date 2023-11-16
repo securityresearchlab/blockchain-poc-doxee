@@ -1,4 +1,4 @@
-import { InvitationDto, MemberDto, UserDto } from "@/openapi";
+import { InvitationDto, MemberDto, NodeDto, UserDto } from "@/openapi";
 import Button from "../Button/Button";
 import Container from "../Container/Container";
 import Logo from "../Logo/Logo";
@@ -7,6 +7,7 @@ interface Props {
     user?: UserDto;
     invitation?: InvitationDto;
     member?: MemberDto;
+    nodes?: Array<NodeDto>;
     handleLogout: () => void;
     handleCreatePeerNode: () => void;
 }
@@ -27,7 +28,7 @@ export default function PeerNodeCreation({...props}: Props) {
                     <div><div className="font-semibold">Invitation ID</div>{props.member?.memberId}</div>
                     <div><div className="font-semibold">Invitation Status</div>{props.invitation?.status}</div>
                     <div><div className="font-semibold">Member Status</div>{props.member?.status}</div>
-                    {props.member?.nodes?.map(node => (
+                    {props.nodes?.map(node => (
                         <>
                             <div><div className="font-semibold">Peer Node</div>{node.nodeId}</div>
                             <div><div className="font-semibold">Status</div>{node.status}</div>

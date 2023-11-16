@@ -1,15 +1,14 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { ManagedBlockchain } from 'aws-sdk';
+import { InjectAwsService } from 'nest-aws-sdk';
 import * as path from 'path';
-import { MailService } from 'src/mail/mail.service';
 import { User } from 'src/users/entities/user';
-import { executeBashSript } from './utils';
-import { Proposal } from './entities/proposal';
 import { Invitation } from './entities/invitation';
 import { Member } from './entities/member';
 import { Node } from './entities/node';
-import { InjectAwsService } from 'nest-aws-sdk';
-import { ManagedBlockchain } from 'aws-sdk';
+import { Proposal } from './entities/proposal';
+import { executeBashSript } from './utils';
 
 @Injectable()
 export class BlockchainService {
@@ -20,16 +19,15 @@ export class BlockchainService {
         @InjectAwsService(ManagedBlockchain) 
         private readonly managedBlockchain: ManagedBlockchain,
         private configService: ConfigService, 
-        private mailService: MailService
     ) {}
 
     /**
-     * Generates invitation for Doxee blockchain
+     * Generates proposal for Doxee blockchain
      * @param user 
      * @returns 
      */
     async generateProposal(user: User): Promise<string> {
-        this.logger.log(`Start enrolling organization: ${user.organization}`);
+        this.logger.log(`Start generating proposal for AWS account: ${user.awsClientId}`);
 
         const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
         const proposalId: string = await executeBashSript(
@@ -45,15 +43,11 @@ export class BlockchainService {
             return response;
         });
 
+        if (!proposalId)
+            throw new HttpException('Error during proposal generation', HttpStatus.INTERNAL_SERVER_ERROR);
+        
         this.logger.log("proposalId generated: " + proposalId);
-
-        // Send proposalId to client Email
-        if (proposalId) {
-            this.mailService.sendProposalId(user, proposalId);
-            return proposalId
-        }
-
-        throw new HttpException('Error during Org initialization', HttpStatus.INTERNAL_SERVER_ERROR);
+        return proposalId
     }
 
     /**

@@ -43,9 +43,11 @@ export class UsersService {
         if(user) {
             try {
                 await this.updateProposals(user);
-                await this.updateInvitations(user);
-                await this.updateMembers(user);
-                await this.updateNodes(user);
+                if(this.configService.get('APP_MODE') == AppModeEnum.CLIENT) {
+                    await this.updateInvitations(user);
+                    await this.updateMembers(user);
+                    await this.updateNodes(user);
+                }
             } catch (err) {
                 // TODO: improve transaction management and remove this try/catch statement
                 this.logger.warn(err);
@@ -110,6 +112,7 @@ export class UsersService {
             async (transactionManager) => {
                 if (verify?.length > 0) {
                     const proposalId = await this.blockchainService.generateProposal(user);
+                    this.mailService.sendProposalId(user, proposalId);
                     user.proposals.push(await transactionManager.save(await this.blockchainService.getProposalById(proposalId)));
                     await transactionManager.update(AuthCode, {user: user}, {used: true});
                     user.active = true;
@@ -147,13 +150,14 @@ export class UsersService {
     }
 
     /**
-     * Generate new proposal if no one is already ACCEPTED
+     * Generates a new proposal
      * @param email 
      */
     async generateNewProposal(email: string) {
         this.logger.log(`Start generating new proposal for ${email}`);
         let user: User = await this.findOne(email); 
         const proposalId = await this.blockchainService.generateProposal(user);
+        this.mailService.sendProposalId(user, proposalId);
         const proposal = await this.blockchainService.getProposalById(proposalId);
         user.proposals.push(await this.usersRepositoryService.getManager().save(proposal));
         await this.usersRepositoryService.getManager().save(user);
@@ -184,7 +188,6 @@ export class UsersService {
         user = await this.usersRepositoryService.findOne(user.email);
         this.logger.log(`Start creation of Peer Node for AWS client ${user.awsClientId}`);
 
-        user = await this.usersRepositoryService.findOne(user.email);
         user.nodes.push(await this.noderepository.save(await this.blockchainService.createPeerNode(user)));
 
         return await this.usersRepositoryService.getManager().save(user);
