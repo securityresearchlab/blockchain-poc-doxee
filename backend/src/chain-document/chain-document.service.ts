@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { randomUUID } from 'crypto';
-import { ChaincodeService } from 'src/blockchain/chiancode.service';
+import { ChaincodeService } from 'src/chain-document/chiancode.service';
 import { TransactionDto } from 'src/chain-document/dto/transaction-dto';
 import { User } from 'src/users/entities/user';
 import { UsersService } from 'src/users/users.service';

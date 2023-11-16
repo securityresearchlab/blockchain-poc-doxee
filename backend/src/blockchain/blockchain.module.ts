@@ -3,7 +3,7 @@ import { BlockchainService } from './blockchain.service';
 import { AwsSdkModule } from 'nest-aws-sdk';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EC2, EC2InstanceConnect, ManagedBlockchain, SecretsManager } from 'aws-sdk';
-import { ChaincodeService } from './chiancode.service';
+import { ChaincodeService } from '../chain-document/chiancode.service';
 
 @Module({
   imports: [

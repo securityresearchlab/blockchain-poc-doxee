@@ -6,16 +6,17 @@ import * as fs from 'fs';
 import { InjectAwsService } from "nest-aws-sdk";
 import * as path from 'path';
 import { User } from "src/users/entities/user";
-import { TransactionDto } from "../chain-document/dto/transaction-dto";
-import { composeConnectionProfile } from "./config/connectionProfile";
-import { executeBashScriptSpawn, executeBashSript } from "./utils";
+import { TransactionDto } from "./dto/transaction-dto";
+import { composeConnectionProfile } from "../blockchain/config/connectionProfile";
+import { executeBashScriptSpawn, executeBashSript } from "../blockchain/utils";
 
 @Injectable()
 export class ChaincodeService {
     private readonly logger = new Logger(ChaincodeService.name);
-    private readonly BASE_PATH = path.join(process.cwd(), 'src', 'blockchain');
-    private readonly CERTS_PATH = path.join(this.BASE_PATH, 'certs');
-    private readonly SCRIPTS_PATH = path.join(this.BASE_PATH, 'scripts');
+    private readonly BASE_PATH = path.join(process.cwd(), 'src', 'chain-document');
+    private readonly BLOCKCHAIN_PATH = path.join(process.cwd(), 'src', 'blockchain');
+    private readonly CERTS_PATH = path.join(this.BLOCKCHAIN_PATH, 'certs');
+    private readonly SCRIPTS_PATH = path.join(this.BLOCKCHAIN_PATH, 'scripts');
     private readonly SMART_CONTRACTS_PATH = path.join(this.BASE_PATH, 'smart-contracts');
 
     constructor(
