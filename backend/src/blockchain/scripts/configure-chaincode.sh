@@ -5,13 +5,12 @@ function printHelp() {
     echo "  configure-chaincode.sh <chaincode name> <network id> <member id> <node id> <orderer endpoint> <peer endpoint>"
 }
 
-if [[ $# -lt 5 ]] ; then
+if [[ $# -lt 6 ]] ; then
     printHelp > /dev/null
     exit 0
 fi
 
 # cd "$(dirname ${BASH_SOURCE[0]})/.."
-
 
 export LEDGER_STACK="LedgerStack"
 
@@ -55,3 +54,6 @@ docker run -v "$HOME:/opt/home" \
 
 
 echo "Chaincode configuration completed successfully"
+
+
+

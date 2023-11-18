@@ -1,25 +1,16 @@
-// Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
-// SPDX-License-Identifier: MIT-0
-
 const shim = require('fabric-shim');
 
-async function runQuery(stub, query) {
-  const iterator = await stub.getQueryResult(query);
-  const items = [];
-  let result = {};
-  while (!result.done) {
-    result = await iterator.next(); // eslint-disable-line no-await-in-loop
-    if (result.value) {
-      const id = result.value.key;
-      const document = result.value.value.toString('utf8');
-      items.push({ id, document });
-    }
-  }
-  return Buffer.from(JSON.stringify(items));
-}
-
 const Chaincode = class {
-  async Init() {
+  async Init(stub) {
+    console.info('Chaincode initialization');
+    // Define the private data collection configuration
+    const collectionConfig = [
+      {
+        name: 'privateCollection',
+        policy: 'OR ("Org1MSP.peer", "Org2MSP.peer")',
+      },
+    ];
+    await stub.createCollection('_implicit_org_Org1MSP', JSON.stringify(collectionConfig));
     return shim.success();
   }
 
@@ -27,38 +18,68 @@ const Chaincode = class {
     const details = stub.getFunctionAndParameters();
     console.info(`Chaincode ${details.fcn} invoked: ${details.params}`);
     const method = this[details.fcn];
+    
     if (!method) {
       throw new Error(`Chaincode function does not exist: ${details.fcn}`);
     }
+    
     try {
-      const item = JSON.parse(details.params);
-      const response = await method(stub, item);
+      let response;
+      if (details.fcn === 'getAllPrivateData') {
+        response = await this.getAllPrivateData(stub);
+      } else {
+        const item = JSON.parse(details.params);
+        response = await method(stub, item);
+      }
+
       return shim.success(response);
     } catch (err) {
       return shim.error(err);
     }
   }
 
-  async getAll(stub) {
-    const query = '{"selector": {}}';
-    return runQuery(stub, query);
-  }
-
-  async get(stub, item) {
-    const key = item.id;
-    return stub.getState(key);
-  }
 
   async put(stub, item) {
     const key = item.id;
     const buffer = Buffer.from(item.document);
     await stub.putState(key, buffer);
+    const privateDataKey = stub.createCompositeKey('_implicit_org_Org1MSP', [key]);
+    await stub.putPrivateData('_implicit_org_Org1MSP', 'privateCollection', privateDataKey, buffer);
   }
 
   async delete(stub, item) {
     const key = item.id;
     await stub.deleteState(key);
+    const privateDataKey = stub.createCompositeKey('_implicit_org_Org1MSP', [key]);
+    await stub.deletePrivateData('_implicit_org_Org1MSP', 'privateCollection', privateDataKey);
   }
+
+  async getPrivateData(stub, item) {
+    const key = item.id;
+    const privateDataKey = stub.createCompositeKey('_implicit_org_Org1MSP', [key]);
+    return stub.getPrivateData('_implicit_org_Org1MSP', 'privateCollection', privateDataKey);
+  }
+
+  async getAllPrivateData(stub) {
+    const privateDataIterator = await stub.getPrivateDataByRange('_implicit_org_Org1MSP', '', '');
+    const allPrivateData = [];
+
+    while (true) {
+      const privateDataResult = await privateDataIterator.next();
+      if (privateDataResult.value) {
+        const key = privateDataResult.value.key;
+        const value = privateDataResult.value.value.toString('utf8');
+        allPrivateData.push({ key, value });
+      }
+      if (privateDataResult.done) {
+        await privateDataIterator.close();
+        break;
+      }
+    }
+    return Buffer.from(JSON.stringify(allPrivateData));
+  }
+
 };
 
 shim.start(new Chaincode());
+
