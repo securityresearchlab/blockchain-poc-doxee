@@ -66,7 +66,7 @@ export class ChaincodeService {
      * @param args 
      * @returns 
      */
-    async query(user: User, fcn: 'get'|'getAll', args: Array<string>): Promise<Array<Object>> {
+    async query(user: User, fcn: 'getPrivateData'|'getAllPrivateData', args: Array<string>): Promise<Array<Object>> {
       const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
       this.logger.log(`Start query ${fcn} on channel: ${CHANNEL_NAME} with args: ${args}`);
                
@@ -76,7 +76,7 @@ export class ChaincodeService {
       return channel.queryByChaincode(this.composeRequest(fcn, args))
           .then(res => {
             this.logger.debug(`Query response: ${JSON.stringify(res)}`);
-            return JSON.parse(res[0].toString());
+            return JSON.parse(fcn == 'getPrivateData' ? res[0].toString() : res.toString());
           })
           .catch(err => {
               this.logger.error(err);
@@ -87,11 +87,11 @@ export class ChaincodeService {
     /**
      * Invoke chain code to create or delete items
      * @param user 
-     * @param method 'POST' || 'PUT' || 'DELETE'
+     * @param method 'PUT' || 'DELETE'
      * @param args 
      * @returns 
      */
-    async invoke(user: User, method: 'POST'|'PUT'|'DELETE', args: Array<string>): Promise<TransactionDto> {
+    async invoke(user: User, method: 'PUT'|'DELETE', args: Array<string>): Promise<TransactionDto> {
         const CHANNEL_NAME = this.configService.get('CHANNEL_NAME');
         this.logger.log(`Start invoke ${method} on channel: ${CHANNEL_NAME} with args: ${args}`);
 
@@ -104,7 +104,7 @@ export class ChaincodeService {
         request.txId = transactionId;
         request.targets = channel.getPeers().map(peer => peer.getPeer());
 
-        this.logger.log(`Request: ${JSON.stringify(request)}`)
+        this.logger.log(`Request: ${JSON.stringify(request)}`);
         
         const proposalResults = await channel.sendTransactionProposal(request as FabricClient.ChaincodeInvokeRequest);
         

@@ -29,20 +29,20 @@ export class ChainDocumentService {
     async findAll(user: User): Promise<Array<ChainDocument>> {
         user = await this.usersService.findOne(user.email);
         this.logger.log(`Start searching all documents for user ${user.id}`);
-        return (await this.chaincodeService.query(user, 'getAll', []))
+        return (await this.chaincodeService.query(user, 'getAllPrivateData', []))
             .map(doc => new ChainDocument(doc));
     }
 
     async findOne(user: User, id: string): Promise<ChainDocument> {
         user = await this.usersService.findOne(user.email);
         this.logger.log(`Start searching document ${id} for user ${user.id}`);
-        return (await this.chaincodeService.query(user, 'get', [JSON.stringify({id: id})]))
+        return (await this.chaincodeService.query(user, 'getPrivateData', [JSON.stringify({id: id})]))
             .map(doc => new ChainDocument(doc))?.at(0);
     }   
 
     async uploadDocument(user: User, chaindocumentUploadDto: ChaindocumentUploadDto, file: Express.Multer.File): Promise<TransactionDto> {
         user = await this.usersService.findOne(user.email);
-        this.logger.log(`Start uplaoding document ${file.originalname} for user ${user.id}`);
+        this.logger.log(`Start uploading document ${file.originalname} for user ${user.id}`);
         let document = new ChainDocument({
             id: randomUUID(),
             name: file.originalname,
@@ -51,6 +51,6 @@ export class ChainDocumentService {
             buffer: file.buffer,
             uploadDate: new Date(),
         });
-        return (await this.chaincodeService.invoke(user, 'POST', [JSON.stringify(document)]))
+        return (await this.chaincodeService.invoke(user, 'PUT', [JSON.stringify(document)]));
     }
 }

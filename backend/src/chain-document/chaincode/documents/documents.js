@@ -10,6 +10,7 @@ const Chaincode = class {
         policy: 'OR ("Org1MSP.peer", "Org2MSP.peer")',
       },
     ];
+
     await stub.createCollection('_implicit_org_Org1MSP', JSON.stringify(collectionConfig));
     return shim.success();
   }

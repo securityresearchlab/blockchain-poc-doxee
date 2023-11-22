@@ -73,7 +73,7 @@ export class ChainDocumentController {
         @ReqUser() user: User, 
         @Req() req: Request, 
         @UploadedFile() file: Express.Multer.File, 
-        @Body() chaindocumentUploadDto: ChaindocumentUploadDto) : Promise<TransactionDto> {
+        @Body() chaindocumentUploadDto: ChaindocumentUploadDto): Promise<TransactionDto> {
             chaindocumentUploadDto.url = fileMapper({file, req}).url;
             return await this.chainDocumentService.uploadDocument(user, chaindocumentUploadDto, file);
     }
