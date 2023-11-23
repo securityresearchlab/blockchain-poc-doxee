@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { AuthCodeController } from './auth-code.controller';
+import {Test, TestingModule} from '@nestjs/testing';
+import {AuthCodeController} from './auth-code.controller';
 
 describe('AuthCodeController', () => {
   let controller: AuthCodeController;

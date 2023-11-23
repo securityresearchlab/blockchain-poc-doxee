@@ -1,32 +1,32 @@
-import { Column, CreateDateColumn, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
-import { InvitationStatusEnum } from "./invitation-status-enum";
-import { User } from "src/users/entities/user";
+import {Column, CreateDateColumn, Entity, JoinTable, ManyToOne, PrimaryGeneratedColumn} from 'typeorm';
+import {InvitationStatusEnum} from './invitation-status-enum';
+import {User} from 'src/users/entities/user';
 
 @Entity()
 export class Invitation {
-    @PrimaryGeneratedColumn()
-    id: string;
+  @PrimaryGeneratedColumn()
+  id: string;
 
-    @Column()
-    invitationId: string;
+  @Column()
+  invitationId: string;
 
-    @CreateDateColumn()
-    creationDate: Date;
+  @CreateDateColumn()
+  creationDate: Date;
 
-    @Column()
-    expirationDate: Date;
+  @Column()
+  expirationDate: Date;
 
-    @Column({enum: InvitationStatusEnum})
-    status: InvitationStatusEnum;
+  @Column({enum: InvitationStatusEnum})
+  status: InvitationStatusEnum;
 
-    @ManyToOne(type => User, user => user.email)
-    @JoinTable()
-    user: User;
+  @ManyToOne((type) => User, (user) => user.email)
+  @JoinTable()
+  user: User;
 
-    constructor(invitationAwsObj: any) {
-        this.invitationId = invitationAwsObj?.["InvitationId"];
-        this.creationDate = new Date(invitationAwsObj?.["CreationDate"]);
-        this.expirationDate = new Date(invitationAwsObj?.["ExpirationDate"]);
-        this.status = InvitationStatusEnum[invitationAwsObj?.["Status"]];
-    }
+  constructor(invitationAwsObj: any) {
+    this.invitationId = invitationAwsObj?.['InvitationId'];
+    this.creationDate = new Date(invitationAwsObj?.['CreationDate']);
+    this.expirationDate = new Date(invitationAwsObj?.['ExpirationDate']);
+    this.status = InvitationStatusEnum[invitationAwsObj?.['Status']];
+  }
 }

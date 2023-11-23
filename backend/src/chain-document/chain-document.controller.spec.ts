@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ChainDocumentController } from './chain-document.controller';
+import {Test, TestingModule} from '@nestjs/testing';
+import {ChainDocumentController} from './chain-document.controller';
 
 describe('ChainDocumentController', () => {
   let controller: ChainDocumentController;

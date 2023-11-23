@@ -1,4 +1,4 @@
 export enum AppModeEnum {
-    INVITATION = "INVITATION",
-    CLIENT = "CLIENT",
+  INVITATION = 'INVITATION',
+  CLIENT = 'CLIENT',
 }

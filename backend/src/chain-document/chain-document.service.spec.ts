@@ -1,5 +1,5 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { ChainDocumentService } from './chain-document.service';
+import {Test, TestingModule} from '@nestjs/testing';
+import {ChainDocumentService} from './chain-document.service';
 
 describe('ChainDocumentService', () => {
   let service: ChainDocumentService;

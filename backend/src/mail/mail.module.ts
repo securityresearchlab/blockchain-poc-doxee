@@ -1,7 +1,7 @@
-import { Global, Module } from '@nestjs/common';
-import { MailService } from './mail.service';
-import { MailerModule } from '@nestjs-modules/mailer';
-import { ConfigService } from '@nestjs/config';
+import {Global, Module} from '@nestjs/common';
+import {MailService} from './mail.service';
+import {MailerModule} from '@nestjs-modules/mailer';
+import {ConfigService} from '@nestjs/config';
 
 @Global()
 @Module({
@@ -22,8 +22,8 @@ import { ConfigService } from '@nestjs/config';
         template: {
           dir: '/src/mail/templates',
           options: {
-            strict: false
-          }
+            strict: false,
+          },
         },
       }),
       inject: [ConfigService],
