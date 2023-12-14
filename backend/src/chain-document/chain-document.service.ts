@@ -1,6 +1,6 @@
 import {HttpException, HttpStatus, Injectable, Logger} from '@nestjs/common';
 import {randomUUID} from 'crypto';
-import {ChaincodeService} from 'src/chain-document/chiancode.service';
+import {ChaincodeService} from 'src/chain-document/chaincode.service';
 import {TransactionDto} from 'src/chain-document/dto/transaction-dto';
 import {User} from 'src/users/entities/user';
 import {UsersService} from 'src/users/users.service';
@@ -25,13 +25,13 @@ export class ChainDocumentService {
   async findAll(user: User): Promise<Array<ChainDocument>> {
     user = await this.usersService.findOne(user.email);
     this.logger.log(`Start searching all documents for user ${user.id}`);
-    return (await this.chaincodeService.query(user, 'getAllPrivateData', [])).map((doc) => new ChainDocument(doc));
+    return (await this.chaincodeService.query(user, 'getAllPrivateData', [JSON.stringify({collectionName: user.organization + "MSP"})])).map((doc) => new ChainDocument(doc));
   }
 
   async findOne(user: User, id: string): Promise<ChainDocument> {
     user = await this.usersService.findOne(user.email);
     this.logger.log(`Start searching document ${id} for user ${user.id}`);
-    return (await this.chaincodeService.query(user, 'getPrivateData', [JSON.stringify({id: id})]))
+    return (await this.chaincodeService.query(user, 'getPrivateData', [JSON.stringify({id: id, collectionName: user.organization + "MSP"})]))
       .map((doc) => new ChainDocument(doc))
       ?.at(0);
   }
@@ -46,6 +46,7 @@ export class ChainDocumentService {
       url: chaindocumentUploadDto.url,
       buffer: file.buffer,
       uploadDate: new Date(),
+      collectionName: user.organization + "MSP"
     });
     return await this.chaincodeService.invoke(user, 'PUT', [JSON.stringify(document)]);
   }

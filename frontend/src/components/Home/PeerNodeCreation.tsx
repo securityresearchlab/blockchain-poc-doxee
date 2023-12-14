@@ -37,7 +37,7 @@ export default function PeerNodeCreation({...props}: Props) {
                 </div>
             }
             <div className="w-full mt-8">
-                {(props.member && props.member.status == MemberDto.status.AVAILABLE) &&
+                {(props.member && props.member.status != MemberDto.status.AVAILABLE) &&
                     <Button text="Create Peer Node" onClick={props.handleCreatePeerNode} style="primary"></Button>
                 }
                 <Button text="Logout" onClick={props.handleLogout} style="secondary"></Button>
