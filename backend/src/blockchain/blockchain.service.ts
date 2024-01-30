@@ -61,7 +61,12 @@ export class BlockchainService {
    */
   async getProposalById(proposalId: string): Promise<Proposal> {
     this.logger.log(`Get proposalId ${proposalId}`);
-    const proposals: Array<Proposal> = (await this.managedBlockchain.listProposals().promise()).Proposals.filter(el => el.ProposalId == proposalId).map(el => new Proposal(el));
+    const proposals: Array<Proposal> = (await this.managedBlockchain.listProposals(
+      {NetworkId: this.configService.get('AWS_NETWORK_ID')})
+      .promise())
+      .Proposals
+      .filter(el => el.ProposalId == proposalId)
+      .map(el => new Proposal(el));
     
     if(proposals.length == 0) {
       this.logger.warn(`Proposal ${proposalId} not found`);
