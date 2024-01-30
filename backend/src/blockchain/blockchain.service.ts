@@ -91,7 +91,11 @@ export class BlockchainService {
   async getAllProposals(user: User): Promise<Array<Proposal>> {
     this.logger.log(`Start retrieving proposals list for AWS account ${user.awsClientId}`);
 
-    return (await this.managedBlockchain.listProposals().promise()).Proposals.map(el => new Proposal(el))
+    return (await this.managedBlockchain.listProposals(
+      {NetworkId: this.configService.get('AWS_NETWORK_ID')})
+      .promise())
+      .Proposals
+      .map(el => new Proposal(el));
 
     // const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
     // return await executeBashSript(awsListProposalsScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger).then((response) => {
