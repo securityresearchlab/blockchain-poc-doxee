@@ -3,7 +3,7 @@
 module.exports = {
   env: {
     // INVITATION or CLIENT
-    APP_MODE: 'CLIENT',
+    APP_MODE: 'INVITATION',
   },
   reactStrictMode: true,
   cssModules: true,
