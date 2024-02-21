@@ -29,19 +29,28 @@ export class BlockchainService {
   async generateProposal(user: User): Promise<string> {
     this.logger.log(`Start generating proposal for AWS account: ${user.awsClientId}`);
 
-    const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
-    const proposalId: string = await executeBashSript(
-      awsGenerateInvitationScriptPath,
-      [user.awsClientId, this.configService.get('AWS_NETWORK_ID'), this.configService.get('AWS_MEMBER_ID')],
-      this.logger,
-    ).then((response) => {
-      if (response) return JSON.parse(response)['ProposalId'];
-      return response;
-    });
+    // const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
+    // const proposalId: string = await executeBashSript(
+    //   awsGenerateInvitationScriptPath,
+    //   [user.awsClientId, this.configService.get('AWS_NETWORK_ID'), this.configService.get('AWS_MEMBER_ID')],
+    //   this.logger,
+    // ).then((response) => {
+    //   if (response) return JSON.parse(response)['ProposalId'];
+    //   return response;
+    // });
+  
+    const proposalId = (await this.managedBlockchain.createProposal(
+      {Actions: {Invitations: [{Principal: user.awsClientId}]},
+      NetworkId: this.configService.get('AWS_NETWORK_ID'), 
+      MemberId: this.configService.get('AWS_MEMBER_ID'), 
+      ClientRequestToken: user.id})
+      .promise())
+      .ProposalId;
 
     if (!proposalId) throw new HttpException('Error during proposal generation', HttpStatus.INTERNAL_SERVER_ERROR);
 
     this.logger.log('proposalId generated: ' + proposalId);
+
     return proposalId;
   }
 
@@ -52,13 +61,27 @@ export class BlockchainService {
    */
   async getProposalById(proposalId: string): Promise<Proposal> {
     this.logger.log(`Get proposalId ${proposalId}`);
-    const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
-    return await executeBashSript(awsListProposalsScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger).then((response) => {
-      const objResponse: Array<any> = JSON.parse(response)['Proposals'];
-      const proposalObj = objResponse.filter((el) => el.ProposalId == proposalId).at(0);
-      const proposal = new Proposal(proposalObj);
-      return proposal;
-    });
+    const proposals: Array<Proposal> = (await this.managedBlockchain.listProposals(
+      {NetworkId: this.configService.get('AWS_NETWORK_ID')})
+      .promise())
+      .Proposals
+      .filter(el => el.ProposalId == proposalId)
+      .map(el => new Proposal(el));
+    
+    if(proposals.length == 0) {
+      this.logger.warn(`Proposal ${proposalId} not found`);
+      throw new HttpException('Proposal not found', HttpStatus.NOT_FOUND);
+    }
+    
+    return proposals.at(0);
+    
+    // const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
+    // return await executeBashSript(awsListProposalsScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger).then((response) => {
+    //   const objResponse: Array<any> = JSON.parse(response)['Proposals'];
+    //   const proposalObj = objResponse.filter((el) => el.ProposalId == proposalId).at(0);
+    //   const proposal = new Proposal(proposalObj);
+    //   return proposal;
+    // });
   }
 
   /**
@@ -68,15 +91,21 @@ export class BlockchainService {
   async getAllProposals(user: User): Promise<Array<Proposal>> {
     this.logger.log(`Start retrieving proposals list for AWS account ${user.awsClientId}`);
 
-    const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
-    return await executeBashSript(awsListProposalsScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger).then((response) => {
-      const objResponse: Array<any> = JSON.parse(response)['Proposals'];
-      let proposals: Array<Proposal> = new Array();
-      objResponse.forEach((el) => {
-        proposals.push(new Proposal(el));
-      });
-      return proposals;
-    });
+    return (await this.managedBlockchain.listProposals(
+      {NetworkId: this.configService.get('AWS_NETWORK_ID')})
+      .promise())
+      .Proposals
+      .map(el => new Proposal(el));
+
+    // const awsListProposalsScriptPath = path.join(this.SCRIPTS_PATH, 'awsListProposals.sh');
+    // return await executeBashSript(awsListProposalsScriptPath, [this.configService.get('AWS_NETWORK_ID')], this.logger).then((response) => {
+    //   const objResponse: Array<any> = JSON.parse(response)['Proposals'];
+    //   let proposals: Array<Proposal> = new Array();
+    //   objResponse.forEach((el) => {
+    //     proposals.push(new Proposal(el));
+    //   });
+    //   return proposals;
+    // });
   }
 
   /**

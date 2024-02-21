@@ -21,7 +21,7 @@ export NODE_ID=$4
 export ORDERER_ENDPOINT=$5
 export PEER_ENDPOINT=$6
 
-export CHANNEL_NAME="documents"
+export CHANNEL_NAME="mychannel"
 export FABRIC_TOOLS_IMAGE="hyperledger/fabric-tools:2.2.3"
 
 export CHAINCODE_VERSION="${1-v1}"
