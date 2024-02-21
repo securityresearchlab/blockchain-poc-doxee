@@ -29,7 +29,7 @@ export class BlockchainService {
   async generateProposal(user: User): Promise<string> {
     this.logger.log(`Start generating proposal for AWS account: ${user.awsClientId}`);
 
-    const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
+    // const awsGenerateInvitationScriptPath = path.join(this.SCRIPTS_PATH, 'awsGenerateInvitation.sh');
     // const proposalId: string = await executeBashSript(
     //   awsGenerateInvitationScriptPath,
     //   [user.awsClientId, this.configService.get('AWS_NETWORK_ID'), this.configService.get('AWS_MEMBER_ID')],
